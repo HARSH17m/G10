@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{% endblock %} | EXPENSEO</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+    <style>
+      {% block style %}{% endblock %}
+    </style>
+  </head>
+  <body>
+    <nav class="navbar sticky-top navbar-dark bg-dark px-3">
+      {% comment %} Menu Icon {% endcomment %}
+      <button
+        class="btn btn-outline-light me-2 d-block"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#sidebar"
+        aria-controls="sidebar"
+      >
+        <i class="bi bi-list"></i>
+      </button>
+
+      {% comment %} Logo / Brand {% endcomment %}
+      <span class="navbar-brand mb-0 h1">EXPENSEO</span>
+
+      {% comment %} Account Dropdown {% endcomment %}
+      <div class="dropdown ms-auto">
+        <a
+          class="btn btn-outline-light dropdown-toggle"
+          href="#"
+          role="button"
+          id="dropdownMenuLink"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <i class="bi bi-person-circle"></i>
+        </a>
+
+        <ul
+          class="dropdown-menu dropdown-menu-end"
+          aria-labelledby="dropdownMenuLink"
+        >
+          <li><a class="dropdown-item" href="#">Profile</a></li>
+          <li><a class="dropdown-item" href="#">Settings</a></li>
+          <li><hr class="dropdown-divider" /></li>
+          <li><a class="dropdown-item" href="#">Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+    {% comment %} sidebar {% endcomment %}
+    <div
+      class="offcanvas offcanvas-start text-bg-dark"
+      tabindex="-1"
+      id="sidebar"
+      aria-labelledby="sidebarLabel"
+    >
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="sidebarLabel">
+          <button
+            class="btn btn-outline-light me-2 d-block "
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#sidebar"
+            aria-controls="sidebar"
+          >
+          MENU
+          </button>
+        </h5>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-2">
+            <a class="nav-link text-white" href="#"
+              ><i class="bi bi-house-door me-2"></i>Home</a
+            >
+          </li>
+          <li class="nav-item mb-2">
+            <a class="nav-link text-white" href="#"
+              ><i class="bi bi-wallet2 me-2"></i>Expenses</a
+            >
+          </li>
+          <li class="nav-item mb-2">
+            <a class="nav-link text-white" href="#"
+              ><i class="bi bi-graph-up me-2"></i>Analytics</a
+            >
+          </li>
+          <li class="nav-item mb-2">
+            <a class="nav-link text-white" href="#"
+              ><i class="bi bi-gear me-2"></i>Settings</a
+            >
+          </li>
+        </ul>
+      </div>
+    </div>
+    {% block body %}{% endblock %}
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
