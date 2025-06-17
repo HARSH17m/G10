@@ -1,0 +1,4 @@
+tables:
+BaseClass(models.Model)
+User(BaseClass)
+User_details(User)
