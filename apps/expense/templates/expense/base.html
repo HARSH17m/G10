@@ -18,7 +18,7 @@
       {% block style %}{% endblock %}
     </style>
   </head>
-  <body>
+  <body class="bg-secondary">
     <nav class="navbar sticky-top navbar-dark bg-dark px-3">
       {% comment %} Menu Icon {% endcomment %}
       <button
@@ -32,7 +32,9 @@
       </button>
 
       {% comment %} Logo / Brand {% endcomment %}
-      <span class="navbar-brand mb-0 h1">EXPENSEO</span>
+      <span class="navbar-brand mb-0 h1">
+        EXPENSEO | {% block page %}{% endblock  %}
+      </span>
 
       {% comment %} Account Dropdown {% endcomment %}
       <div class="dropdown ms-auto">
@@ -52,7 +54,6 @@
           aria-labelledby="dropdownMenuLink"
         >
           <li><a class="dropdown-item" href="#">Profile</a></li>
-          <li><a class="dropdown-item" href="#">Settings</a></li>
           <li><hr class="dropdown-divider" /></li>
           <li><a class="dropdown-item" href="#">Logout</a></li>
         </ul>
@@ -74,32 +75,50 @@
             data-bs-target="#sidebar"
             aria-controls="sidebar"
           >
-          MENU
+          EXPENSEO
           </button>
         </h5>
       </div>
       <div class="offcanvas-body">
         <ul class="nav flex-column">
-          <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="#"
+        <hr class="my-1" />
+          <li class="nav-item mb-2 bg-secondary p-">
+            <a class="nav-link text-white bg-dark " href="{% url 'index' %}"
               ><i class="bi bi-house-door me-2"></i>Home</a
             >
           </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="#"
-              ><i class="bi bi-wallet2 me-2"></i>Expenses</a
+          <hr class="my-1" />
+          <li class="nav-item mb-2 bg-secondary p-">
+            <a class="nav-link text-white bg-dark " href="#"
+              ><i class="bi bi-wallet2 me-2"></i>Expenses Tracker</a
             >
           </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="#"
+          <hr class="my-1" />
+          <li class="nav-item mb-2 bg-secondary p-">
+            <a class="nav-link text-white bg-dark " href="#"
+              ><i class="bi bi-cart me-2"></i>Shopping List & Bills</a
+            >
+          </li>
+          <hr class="my-1" />
+          <li class="nav-item mb-2 bg-secondary p-">
+            <a class="nav-link text-white bg-dark " href="#"
+              ><i class="bi bi-receipt me-2"></i>Recent Expense</a
+            >
+          </li>
+          <hr class="my-1" />
+          <li class="nav-item mb-2 bg-secondary p-">
+            <a class="nav-link text-white bg-dark " href="{% url 'analytics' %}"
               ><i class="bi bi-graph-up me-2"></i>Analytics</a
             >
           </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="#"
-              ><i class="bi bi-gear me-2"></i>Settings</a
+          <hr class="my-1" />
+          <li class="nav-item mb-2 bg-secondary p-">
+            <a class="nav-link text-white bg-dark " href="#"
+              ><i class="bi bi-people me-2"></i>Contact Us</a
             >
           </li>
+          <hr class="my-1" />
+
         </ul>
       </div>
     </div>
