@@ -6,8 +6,8 @@
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-md-8">
-      <div class="p-4 shadow-lg rounded-4" style="background-color:rgb(38, 68, 81);">
-        <h3 class="text-center mb-4">User Registration</h3>
+      <div class="p-4 shadow-lg rounded-4" style="background-color:rgb(139, 118, 255);">
+        <h3 class="text-center text-light mb-4">User Registration</h3>
         
         <form method="POST">
           {% csrf_token %}
@@ -18,14 +18,14 @@
                 <input type="text" class="form-control bg-dark text-light" id="fullName" name="full_name" placeholder="Full Name">
                 <label for="fullName" class="text-light">Full Name</label>
               </div>
-
+              <hr class="my-3 border border-light " />
               <div class="form-floating mb-3">
                 <input type="date" class="form-control bg-dark text-light" id="dob" name="dob" placeholder="Date of Birth">
                 <label for="dob" class="text-light">Date of Birth</label>
               </div>
-
+              <hr class="my-3 border border-light " />
               <div class="mb-3">
-                <label class="form-label d-block py-2 fs-5">Gender</label>
+                <label class="form-label d-block py-2 fs-5 text-light">Gender</label>
                 <div class="form-check form-check-inline">
                   <input class="form-check-input  bg-dark text-light" type="radio" name="gender" id="male" value="male">
                   <label class="form-check-label text-light" for="male">Male</label>
@@ -44,7 +44,7 @@
 
             <!-- Vertical HR divider -->
             <div class="col-md-1 d-flex justify-content-center">
-              <div style="width:1px; background-color: rgba(0, 0, 0, 0.2); height: 100%;"></div>
+              <div style="width:1px; background-color: rgba(255, 255, 255, 0.2); height: 100%;"></div>
             </div>
 
             <!-- Right Column -->
@@ -85,12 +85,12 @@
                 </select>
                 <label for="state" class="text-light">State</label>
               </div>
-
+              <hr class="my-3 border border-light " />
               <div class="form-floating mb-3">
                 <input type="text" class="form-control bg-dark text-light" id="city" name="city" placeholder="City">
                 <label for="city" class="text-light">City</label>
               </div>
-              
+              <hr class="my-3 border border-light " />
               <div class="form-floating mb-3">
                 <input type="text" class="form-control bg-dark text-light" id="occupation" name="occupation" placeholder="Occupation">
                 <label for="occupation" class="text-light">Occupation</label>
@@ -101,7 +101,7 @@
 
           <!-- Submit -->
           <div class="d-grid mt-4">
-            <input type="submit" class="btn btn-outline-secondary btn-lg rounded-3" value="Register" >
+            <input type="submit" class="btn btn-outline-light btn-lg rounded-3" value="Register" >
           </div>
         </form>
       </div>

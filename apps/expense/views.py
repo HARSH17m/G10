@@ -1,4 +1,11 @@
 from django.shortcuts import render,redirect
+from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
+from django.conf import settings
+
+from .helpers import *
+
+import random
 
 # Create your views here.
 def login(request):

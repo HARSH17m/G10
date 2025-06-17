@@ -2,5 +2,33 @@
 
 {% block title %}INDEX{% endblock %}
 {% block styles %}{% endblock %}
-{% block body %}{% endblock %}
 {% block page %}HOME{% endblock %}
+{% block body %}
+<div class="row">
+    <div class="col-sm-6 m-3">
+        <div class="card p-5">
+            <div class="card-title py-5"></div>
+            <div class="card-title py-5"></div>
+        </div>
+    </div>
+    <div class="col-sm-5 m-3">
+        <div class="card p-5">
+            <div class="card-title py-5"></div>
+            <div class="card-title py-5"></div>
+        </div>
+    </div>
+    <table>
+        <tr>
+            <th>Sr No.</th>
+            <th>Expense</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Paid</th>
+        </tr>
+        <tr>
+            <!-- forloop for data fetching -->
+        </tr>
+    </table>
+
+</div>
+{% endblock %}
