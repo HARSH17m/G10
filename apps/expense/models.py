@@ -12,6 +12,16 @@ class Users(BaseClass):
     password=models.CharField(max_length=255,null=False,blank=False)
     is_active=models.BooleanField(default=False)
 
-# class UserDetails(Users):
-#     Uid=models.ForeignKey(Users,on_delete=models.CASCADE)
+# class BaseClass2(models.Model,Users):
+#     Id=models.CharField(primary_key=True,default=Users.email,blank=False,null=False)
+#     class Meta:
+#         abstract = True
 
+# class UserDetails(Users):
+#     Id=models.ForeignKey(Users,on_delete=models.CASCADE)
+#     full_name = models.CharField(max_length=100,blank=False,null=False)
+#     dob = models.DateField()
+#     gender = models.CharField(max_length=10,blank=False,null=False)
+#     state = models.CharField(max_length=30,blank=False,null=False)
+#     city = models.CharField(max_length=100,blank=False,null=False)
+#     occupation = models.CharField(max_length=20,blank=False,null=False)

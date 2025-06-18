@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -8,11 +8,33 @@ from .helpers import *
 import random
 
 # Create your views here.
-def login(request):
+def login(request):#VIVEK
+    if request.method == 'POST':
+        email_=request.POST['email']
+        password_=request.POST['password']
+        #
+        
     return render(request,'expense/login.html')
 
-def signup(request):
+def signup(request):#ADAM
+    if request.method == 'POST':
+        email_=request.POST['email']
+        password_=request.POST['password']
+        confirm_password_=request.POST['confirm_password']
+        #
+
     return render(request,'expense/signup.html')
+
+def email_verify(request):#VARUN
+    if request.method == 'POST':
+        email_=request.POST['email']
+        otp_=request.POST['otp']
+        #
+
+    return render(request,'expense/email_verify.html')
+
+def forgot_password(request):#HARSH
+    return render(request,'expense/forgot_password.html')
 
 def index(request):
     return render(request,'expense/index.html')

@@ -1,10 +1,20 @@
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% block title %}LOGIN{% endblock %}
-</head>
-<body>
-    
-</body>
+{% extends 'expense/baselr.html' %}
+{% block title %}SIGNUP{% endblock %}
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <fieldset>
+                    <legend>SIGNUP</legend>
+                    <form action="" method="post">
+                        {% csrf_token %}
+                        <input type="text" name="email" class="form-control" placeholder="example@example.com">
+                        <input type="password" name="password" class="form-control" placeholder="********">
+                        <input type="password" name="confirm_password" class="form-control" placeholder="********">
+                        <input type="button" value="Signup" class="btn btn-outline-primary">
+                    </form>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+{% endblock  %}
