@@ -91,11 +91,18 @@
                 <label for="city" class="text-light">City</label>
               </div>
               <hr class="my-3 border border-light " />
-              <div class="form-floating mb-3">
+              {% comment %} <div class="form-floating mb-3">
                 <input type="text" class="form-control bg-dark text-light" id="occupation" name="occupation" placeholder="Occupation">
                 <label for="occupation" class="text-light">Occupation</label>
+              </div> {% endcomment %}
+              <div class="form-floating mb-3">
+                <select class="form-select bg-dark text-light" id="state" name="occupation" aria-label="Occupation selection">
+                  <option selected disabled class="text-light">Select your Occupation</option>
+                  <option value="Employed">Employed</option>
+                  <option value="Unemployed">Unemployed</option>
+                </select>
+                <label for="state" class="text-light">Occupation</label>
               </div>
-
             </div>
           </div>
 
