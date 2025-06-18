@@ -1,0 +1,17 @@
+if not Users.objects.filter(email=email_).exists():
+            print("Email does't exist")
+            return redirect('login')
+        
+        get_user = Users.objects.get(email=email_)
+
+        if not get_user.is_active:
+            print("Your account is deactive please contact to customer care")
+            return redirect('login')
+        
+        is_password_verify = check_password(password_, get_user.password)
+        if not is_password_verify:
+            print("Email or password not match")
+            return redirect('login') 
+        
+        request.session['user_id'] = str(get_user.UID)
+        return redirect('index')
