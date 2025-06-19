@@ -8,11 +8,18 @@ from .helpers import *
 import random
 
 # Create your views here.
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if 'labour_id' not in request.session:
+            return redirect('login')  # redirect to login page
+        return view_func(request, *args, **kwargs)
+    return wrapper 
+
 def login(request):#VIVEK
     if request.method == 'POST':
         email_=request.POST['email']
         password_=request.POST['password']
-        #
         
     return render(request,'expense/login.html')
 
