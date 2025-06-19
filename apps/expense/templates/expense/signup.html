@@ -1,20 +1,58 @@
 {% extends 'expense/baselr.html' %}
-{% block title %}SIGNUP{% endblock %}
+{% comment %} {% block title %}SIGNUP{% endblock %}
 {% block body %}
     <div class="container">
         <div class="row">
             <div class="col">
                 <fieldset>
-                    <legend>SIGNUP</legend>
+                    <legend>SignUp</legend>
                     <form action="" method="post">
                         {% csrf_token %}
                         <input type="text" name="email" class="form-control" placeholder="example@example.com">
                         <input type="password" name="password" class="form-control" placeholder="********">
                         <input type="password" name="confirm_password" class="form-control" placeholder="********">
-                        <input type="submit" value="Signup" class="btn btn-primary">
+                        <input type="submit" value="Signup" class="btn btn-dark">
                     </form>
                 </fieldset>
             </div>
         </div>
     </div>
-{% endblock  %}
+{% endblock  %} {% endcomment %}
+
+{% block title %}SIGNUP{% endblock %}
+{% block body %}
+    <div class="container ">
+        <div class="row justify-content-center ">
+            <div class="col-sm-6">
+                <img src="https://static.vecteezy.com/system/resources/previews/017/077/176/original/colorful-join-us-illustration-banner-poster-join-us-neon-sign-on-a-dark-blue-background-vector.jpg" alt="Signup illustration" class="img-thumbnail rounded mx-auto d-block">
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h3 class="card-title text-center m-5">Sign Up</h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            <div class="m-4">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="text" name="email" id="email" class="form-control" placeholder="example@example.com">
+                            </div>
+                            <div class="m-4">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" name="password" id="password" class="form-control" placeholder="********">
+                            </div>
+                            <div class="m-4">
+                                <label for="confirm_password" class="form-label">Confirm Password</label>
+                                <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="********">
+                            </div>
+                            <div class="d-grid m-4">
+                                <input type="submit" value="Signup" class="btn btn-dark">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Optional image column -->
+            
+        </div>
+    </div>
+{% endblock %}
