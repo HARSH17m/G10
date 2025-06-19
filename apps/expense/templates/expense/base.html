@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    {% block head %}{% endblock  %}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}{% endblock %} | EXPENSEO</title>
@@ -95,7 +96,7 @@
           </li>
           <hr class="my-1" />
           <li class="nav-item mb-2 bg-secondary p-">
-            <a class="nav-link text-white bg-dark " href="#"
+            <a class="nav-link text-white bg-dark " href="{% url 'shopping_list_and_bills' %}"
               ><i class="bi bi-cart me-2"></i>Shopping List & Bills</a
             >
           </li>

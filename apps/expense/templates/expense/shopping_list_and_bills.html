@@ -1,0 +1,151 @@
+{% extends "expense/base.html" %}
+{% block title %}Shopping List & Bills{% endblock  %}
+{% block page %}Shopping List & Bills{% endblock  %}
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+{% endblock  %}
+{% block body %}
+<div class="container py-4">
+  <!-- Info Alert with Timer -->
+  <div class="alert alert-warning d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-info-circle"></i>
+      This list will auto-delete in <span id="timer" class="fw-bold text-danger">10:00</span> (10 minute demo).
+    </div>
+    <button class="btn btn-sm btn-outline-dark">View All Transactions</button>
+  </div>
+
+  <!-- Table Start -->
+  <table class="table table-bordered text-center align-middle" id="shoppingTable">
+    <thead class="table-secondary">
+      <tr>
+        <th style="width:5%;">ID</th>
+        <th>List</th>
+        <th>Expected Amount</th>
+        <th>Paid Amount</th>
+        <th style="width:20%;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sample Row -->
+      <tr>
+        <td>1</td>
+        <td><input type="text" class="form-control" placeholder="Item name"></td>
+        <td><input type="number" step="0.01" class="form-control expected"></td>
+        <td><input type="number" step="0.01" class="form-control paid" oninput="updateTotal()"></td>
+        <td class="d-flex flex-column gap-2">
+          <div class="form-check d-flex justify-content-center">
+            <input class="form-check-input me-2 shopped-radio" type="radio" name="shopped0">
+            <label class="form-check-label">Shopped</label>
+          </div>
+          <button class="btn btn-outline-danger btn-sm" onclick="deleteRow(this)">
+            <i class="bi bi-trash"></i> Delete
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Add Row Button -->
+  <div class="text-center mb-4">
+    <button class="btn btn-success w-50" onclick="addRow()">
+      <i class="bi bi-plus-circle"></i> Add Row
+    </button>
+  </div>
+
+  <!-- Total Amount Section -->
+  <div class="bg-secondary text-white p-3 rounded text-end">
+    <h5 class="mb-0">Total Amount: ₹<span id="totalAmount">0.00</span></h5>
+  </div>
+
+  <!-- Save Button -->
+  <div class="text-center mt-4">
+    <button class="btn btn-primary px-5" onclick="saveToMaster()">Save</button>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JS -->
+<script>
+  let idCounter = 2;
+
+  function addRow() {
+    const table = document.getElementById('shoppingTable').getElementsByTagName('tbody')[0];
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>${idCounter++}</td>
+      <td><input type="text" class="form-control" placeholder="Item name"></td>
+      <td><input type="number" step="0.01" class="form-control expected"></td>
+      <td><input type="number" step="0.01" class="form-control paid" oninput="updateTotal()"></td>
+      <td class="d-flex flex-column gap-2">
+        <div class="form-check d-flex justify-content-center">
+          <input class="form-check-input me-2 shopped-radio" type="radio" name="shopped${idCounter}">
+          <label class="form-check-label">Shopped</label>
+        </div>
+        <button class="btn btn-outline-danger btn-sm" onclick="deleteRow(this)">
+          <i class="bi bi-trash"></i> Delete
+        </button>
+      </td>
+    `;
+  }
+
+  function deleteRow(button) {
+    const row = button.closest('tr');
+    row.remove();
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const paidInputs = document.querySelectorAll('.paid');
+    let total = 0;
+    paidInputs.forEach(input => {
+      const value = parseFloat(input.value) || 0;
+      total += value;
+    });
+    document.getElementById('totalAmount').textContent = total.toFixed(2);
+  }
+
+  function saveToMaster() {
+    const rows = document.querySelectorAll('#shoppingTable tbody tr');
+    let savedCount = 0;
+    rows.forEach(row => {
+      const radio = row.querySelector('.shopped-radio');
+      if (radio.checked) {
+        savedCount++;
+        // Simulate saving row to DB
+        row.style.backgroundColor = '#d1e7dd'; // light green for saved
+      }
+    });
+    alert(savedCount + " row(s) marked as 'shopped' saved to master table.");
+  }
+
+  // Timer countdown (10 minute demo)
+  let timeLeft = 600;
+  const timer = document.getElementById('timer');
+  const countdown = setInterval(() => {
+    timeLeft--;
+    const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+    const seconds = String(timeLeft % 60).padStart(2, '0');
+    timer.textContent = `${minutes}:${seconds}`;
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+      deleteUnshoppedRows();
+    }
+  }, 1000);
+
+  function deleteUnshoppedRows() {
+    const rows = document.querySelectorAll('#shoppingTable tbody tr');
+    rows.forEach(row => {
+      const radio = row.querySelector('.shopped-radio');
+      if (!radio.checked) {
+        row.remove();
+      }
+    });
+    alert("Unshopped rows auto-deleted.");
+    updateTotal();
+  }
+</script>
+{% endblock  %}

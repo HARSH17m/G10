@@ -10,13 +10,13 @@ from .helpers import *
 import random
 
 # Create your views here.
-def login_required(view_func):
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if 'labour_id' not in request.session:
-            return redirect('login')  # redirect to login page
-        return view_func(request, *args, **kwargs)
-    return wrapper 
+# def login_required(view_func):
+#     @wraps(view_func)
+#     def wrapper(request, *args, **kwargs):
+#         if 'user_id' not in request.session:
+#             return redirect('login')  # redirect to login page
+#         return view_func(request, *args, **kwargs)
+    # return wrapper 
 
 def login(request):#VIVEK
     if request.method == 'POST':
@@ -111,6 +111,7 @@ def email_verify(request):#VARUN
 def forgot_password(request):#HARSH
     return render(request,'expense/forgot_password.html')
 
+# @login_required
 def index(request):
     return render(request,'expense/index.html')
  
@@ -119,3 +120,6 @@ def analytics(request):
 
 def details(request):
     return render(request,'expense/details.html')
+
+def shopping_list_and_bills(request):
+    return render(request,'expense/shopping_list_and_bills.html')
