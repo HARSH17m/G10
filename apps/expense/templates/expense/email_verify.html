@@ -6,12 +6,12 @@
             <div class="col">
                 <fieldset>
                     <legend>VERIFY</legend>
-                    <form action="" method="post">
+                    <form action="{% url 'email_verify' %}" method="post">
                         {% csrf_token %}
-                        <input type="hidden" name="email" class="form-control" placeholder="example@example.com">
+                        <input type="hidden" name="email" class="form-control" value={{email}}>
                         <label for="">OTP</label>
-                        <input type="text" name="password" class="form-control" placeholder="_ _ _ _ _ _">   
-                        <input type="button" value="Verify">
+                        <input type="number" name="otp" class="form-control" placeholder="_ _ _ _ _ _">   
+                        <input type="submit" value="Verify">
                     </form>
                 </fieldset>
             </div>

@@ -10,7 +10,9 @@
                         {% csrf_token %}
                         <input type="text" name="email" class="form-control" placeholder="example@example.com">
                         <input type="password" name="password" class="form-control" placeholder="********">
-                        <input type="button" value="LOGIN"  class="btn btn-primary">
+                        <input type="submit" value="LOGIN"  class="btn btn-primary">
+                        <a href="{% url 'signup' %}" class="btn btn-outline-info" >Signup</a>
+                        <a href="{% url 'forgot_password' %}" class="btn btn-outline-primary" >Forgot Password</a>
                     </form>
                 </fieldset>
             </div>

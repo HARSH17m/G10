@@ -1,0 +1,14 @@
+user = Users.objects.get(email=email_)
+
+        if int(otp_) != int(user.otp):
+            print(user.otp)
+            print(otp_)
+            print("Invalid OTP")
+            context = {
+            'email': email_
+            }
+            return render(request,'expense/email_verify.html', context)
+
+        user.is_active = True
+        user.save()
+        return redirect('login')
