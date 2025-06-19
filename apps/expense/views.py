@@ -22,13 +22,10 @@ def login(request):#VIVEK
     if request.method == 'POST':
         email_=request.POST['email']
         password_=request.POST['password']
-<<<<<<< HEAD
-=======
         #
         if not Users.objects.filter(email=email_).exists():
             print("Email does't exist")
             return redirect('login')
->>>>>>> 3f24c573d76db15c6ec0f2779b88676443cee8b6
         
         get_user = Users.objects.get(email=email_)
 
