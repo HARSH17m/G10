@@ -1,7 +1,7 @@
 {% extends "expense/baselr.html" %}
 
 {% block title %}User Registration{% endblock %}
-
+{% comment %} add skip for now in here when free {% endcomment %}
 {% block body %}
 <div class="container py-5">
   <div class="row justify-content-center">
@@ -15,19 +15,19 @@
             <!-- Left Column -->
             <div class="col-md-6">
               <div class="form-floating mb-3">
-                <input type="text" class="form-control bg-dark text-light" id="fullName" name="full_name" placeholder="Full Name">
+                <input type="text" class="form-control bg-dark text-light" id="fullName" name="full_name" placeholder="Full Name" required>
                 <label for="fullName" class="text-light">Full Name</label>
               </div>
               <hr class="my-3 border border-light " />
               <div class="form-floating mb-3">
-                <input type="date" class="form-control bg-dark text-light" id="dob" name="dob" placeholder="Date of Birth">
+                <input type="date" class="form-control bg-dark text-light" id="dob" name="dob" placeholder="Date of Birth" required>
                 <label for="dob" class="text-light">Date of Birth</label>
               </div>
               <hr class="my-3 border border-light " />
               <div class="mb-3">
                 <label class="form-label d-block py-2 fs-5 text-light">Gender</label>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input  bg-dark text-light" type="radio" name="gender" id="male" value="male">
+                  <input class="form-check-input  bg-dark text-light" type="radio" name="gender" id="male" value="male" required selected>
                   <label class="form-check-label text-light" for="male">Male</label>
                 </div>
                 <div class="form-check form-check-inline">
@@ -51,8 +51,8 @@
             <div class="col-md-5">
 
               <div class="form-floating mb-3">
-                <select class="form-select bg-dark text-light" id="state" name="state" aria-label="State selection">
-                  <option selected disabled class="text-light">Select your state</option>
+                <select class="form-select bg-dark text-light" id="state" name="state" aria-label="State selection"  required>
+                  <option value="" selected disabled class="text-light">Select your state</option>
                   <option value="Andhra Pradesh">Andhra Pradesh</option>
                   <option value="Arunachal Pradesh">Arunachal Pradesh</option>
                   <option value="Assam">Assam</option>
@@ -87,17 +87,13 @@
               </div>
               <hr class="my-3 border border-light " />
               <div class="form-floating mb-3">
-                <input type="text" class="form-control bg-dark text-light" id="city" name="city" placeholder="City">
+                <input type="text" class="form-control bg-dark text-light" id="city" name="city" placeholder="City" required>
                 <label for="city" class="text-light">City</label>
               </div>
               <hr class="my-3 border border-light " />
-              {% comment %} <div class="form-floating mb-3">
-                <input type="text" class="form-control bg-dark text-light" id="occupation" name="occupation" placeholder="Occupation">
-                <label for="occupation" class="text-light">Occupation</label>
-              </div> {% endcomment %}
               <div class="form-floating mb-3">
-                <select class="form-select bg-dark text-light" id="state" name="occupation" aria-label="Occupation selection">
-                  <option selected disabled class="text-light">Select your Occupation</option>
+                <select class="form-select bg-dark text-light" id="state" name="occupation" aria-label="Occupation selection" required>
+                  <option value="" selected disabled class="text-light">Select your Occupation</option>
                   <option value="Employed">Employed</option>
                   <option value="Unemployed">Unemployed</option>
                 </select>

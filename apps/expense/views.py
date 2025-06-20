@@ -1,9 +1,14 @@
 from django.shortcuts import render,redirect
-from django.contrib.auth.hashers import make_password, check_password
-from django.core.mail import send_mail
 from django.conf import settings
+from django.core.mail import send_mail
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password, check_password
+from django.utils.timezone import localtime
 
-from .models import Users
+from functools import wraps
+from uuid import UUID
+
+from .models import Users,UserDetails,Transaction
 from .helpers import *
 
 import random
@@ -42,7 +47,7 @@ def login(request):#VIVEK
         #
     return render(request,'expense/login.html')
 
-def signup(request):#ADAM
+def signup(request):#ADAM,
     if request.method == 'POST':
         email_=request.POST['email']
         password_=request.POST['password']
@@ -103,7 +108,7 @@ def email_verify(request):#VARUN
 
         user.is_active = True
         user.save()
-        return redirect('login')
+        return redirect('user_details', uid=user.UID)
         #
     return render(request,'expense/email_verify.html')
 
@@ -189,11 +194,82 @@ def index(request):
 def analytics(request):
     return render(request,'expense/analytics.html')
 
-def details(request):
-    return render(request,'expense/details.html')
+def details(request, uid):
+    user = Users.objects.filter(UID=uid, is_active=True).first()
+    if not user:
+        return redirect('register')
+
+    if UserDetails.objects.filter(user_id=user).exists():
+        return redirect('login')  # already filled
+
+    if request.method == 'POST':
+        UserDetails.objects.create(
+            user_id=user,
+            full_name=request.POST['full_name'],
+            dob=request.POST['dob'],
+            gender=request.POST['gender'],
+            state=request.POST['state'],
+            city=request.POST['city'],
+            occupation=request.POST['occupation']
+        )
+        return redirect('login')
+
+    return render(request, 'details.html', {'user': user})
 
 def shopping_list_and_bills(request):
     return render(request,'expense/shopping_list_and_bills.html')
 
+def save_transactions(request):
+    if request.method == 'POST':
+        uid_str = request.session.get('user_id')
+        user = Users.objects.get(UID=UUID(uid_str))
+
+        index = 0
+        while True:
+            item_key = f'item_{index}'
+            expected_key = f'expected_{index}'
+            paid_key = f'paid_{index}'
+            shopped_key = f'shopped_{index}'
+
+            item = request.POST.get(item_key)
+            expected = request.POST.get(expected_key)
+            paid = request.POST.get(paid_key)
+            shopped = request.POST.get(shopped_key)
+
+            if item is None and expected is None and paid is None:
+                break  # No more rows
+
+            if shopped:  # Only save if marked as shopped
+                Transaction.objects.create(
+                    user=user,
+                    item_name=item,
+                    expected_amount=expected or 0,
+                    paid_amount=paid or 0,
+                )
+
+            index += 1
+
+        return redirect('shopping_list_and_bills')
+
+    return redirect('shopping_list_and_bills')
+
 def recent_expenses(request):#HARSH
-    return render(request,'expense/recent_expenses.html')
+    user_uid = request.session.get('user_id')
+
+    if not user_uid:
+        return redirect('login')  # or your preferred login route
+
+    # Fetch user's transactions, newest first
+    expenses = Transaction.objects.filter(user_id=user_uid).order_by('-transaction_time')
+
+    # Optional: Format date if needed in view instead of template
+    for e in expenses:
+        e.formatted_date = localtime(e.transaction_time).strftime('%d-%b-%Y')
+
+    return render(request, 'expense/recent_expenses.html', {
+        'expenses': expenses
+    })
+
+def logout(request):
+    del request.session['user_id']
+    return redirect('login')

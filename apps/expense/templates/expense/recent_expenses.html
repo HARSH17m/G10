@@ -2,5 +2,30 @@
 {% block title %}Recent Expenses{% endblock  %}
 {% block page %}RECENT EXPENSE's{% endblock  %}
 {% block body %}
-Recent Expenses
-{% endblock  %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Recent Expenses</h2>
+    
+    <table class="table table-bordered table-striped shadow">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Item Name</th>
+                <th scope="col">Price (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr>
+                <td>{{ expense.transaction_time }}</td>
+                <td>{{ expense.item_name }}</td>
+                <td>₹{{ expense.paid_amount }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">No expenses found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -37,19 +37,19 @@
                                 <input type="email" name="email" id="email" class="form-control border border-secondary border-2" placeholder="your_email@here.com">
                             </div>
                             <div class="input-group mb-1 px-4">
-                                <label for="password" class="form-label col-sm-12 fs-4">Password</label>
-                                <span class="col-sm-1 input-group-text  border border-secondary border-2 border-end-0 rounded-start"><i class="bi bi-key" id="toggleIcon"></i></span>
-                                <input type="password" name="password" id="password" class="col-sm-10 form-control  border border-secondary border-2 border-end-0 " placeholder="********">
+                                <label for="confirm_password" class="form-label col-sm-12 fs-4">Password</label>
+                                <span class="col-sm-1 input-group-text  border border-secondary border-2 border-end-0 rounded-start"><i class="bi bi-key-fill"></i></span>
+                                <input type="password" name='password' class="col-sm-10 form-control  border border-secondary border-2 border-end-0" id="password" placeholder="********">
                                 <button type="button" class="btn border border-start-0 border-secondary border-2 rounded-end" id="togglePassword">
-                                    <i class="bi bi-eye" id="toggleIcon"></i>
+                                    <i class="bi bi-eye"  id="toggleIcon"></i>
                                 </button>
                             </div>
                             <div class="input-group mb-1 px-4">
                                 <label for="confirm_password" class="form-label col-sm-12 fs-4">Confirm Password</label>
-                                <span class="col-sm-1 input-group-text  border border-secondary border-2 border-end-0 rounded-start"><i class="bi bi-key" id="toggleIcon"></i></span>
-                                <input type="password" name="confirm_password" id="confirm_password" class="col-sm-10 form-control  border border-secondary border-2 border-end-0" placeholder="********">
-                                <button type="button" class="btn border border-start-0 border-secondary border-2 rounded-end" id="togglePassword">
-                                    <i class="bi bi-eye" id="toggleIcon"></i>
+                                <span class="col-sm-1 input-group-text  border border-secondary border-2 border-end-0 rounded-start"><i class="bi bi-key-fill"></i></span>
+                                <input type="password" name='confirm_password' class="col-sm-10 form-control  border border-secondary border-2 border-end-0" id="confirmPassword" placeholder="********">
+                                <button type="button" class="btn border border-start-0 border-secondary border-2 rounded-end" id="toggleConfirmPassword">
+                                    <i class="bi bi-eye"  id="toggleIcon"></i>
                                 </button>
                             </div>
                             <div class="d-grid mt-4 mx-4">
@@ -71,4 +71,33 @@
             </div>
         </div>
     </div>
+
+<script>
+  const togglePassword = document.getElementById('togglePassword');
+  const password = document.getElementById('password');
+  togglePassword.addEventListener('click', function () {
+    const icon = this.querySelector("i");
+    if (password.type === 'password') {
+      password.type = 'text';
+      icon.classList.replace("bi-eye", "bi-eye-slash");
+    } else {
+      password.type = 'password';
+      icon.classList.replace("bi-eye-slash", "bi-eye");
+    }
+  });
+
+  const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+  const confirmPassword = document.getElementById('confirmPassword');
+  toggleConfirmPassword.addEventListener('click', function () {
+    const icon = this.querySelector("i");
+    if (confirmPassword.type === 'password') {
+      confirmPassword.type = 'text';
+      icon.classList.replace("bi-eye", "bi-eye-slash");
+    } else {
+      confirmPassword.type = 'password';
+      icon.classList.replace("bi-eye-slash", "bi-eye");
+    }
+  });
+</script>
+
 {% endblock %}
