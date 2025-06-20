@@ -4,7 +4,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 from .models import Users
-
 from .helpers import *
 
 import random
@@ -108,8 +107,80 @@ def email_verify(request):#VARUN
         #
     return render(request,'expense/email_verify.html')
 
-def forgot_password(request):#HARSH
-    return render(request,'expense/forgot_password.html')
+def forgot_password(request):  # HARSH
+    if request.method == 'POST':
+        email_ = request.POST['email']
+
+        if not Users.objects.filter(email=email_).exists():
+            print("Email doesn't exist")
+            return redirect('signup')
+
+        if 'send_otp' in request.POST:
+            forgot_password_otp_ = random.randint(111111, 999999)
+
+            user = Users.objects.get(email=email_)
+            user.forgot_password_otp = forgot_password_otp_
+            user.save()
+
+            request.session['reset_email'] = email_
+
+            subject = "OTP for Resetting Password | Expenseo"
+            message = f"OTP for Verification: {forgot_password_otp_}"
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = [email_]
+
+            send_mail(subject, message, from_email, recipient_list)
+
+            print("OTP Sent")
+            return render(request, 'expense/forgot_password.html', {
+                'email': email_,
+                'otp_sent': True
+            })
+
+        elif 'verify_otp' in request.POST:
+            user_otp = request.POST['otp']
+            email_ = request.session.get('reset_email')
+
+            if not email_:
+                return redirect('forgot_password')
+
+            user = Users.objects.get(email=email_)
+
+            if int(user_otp) != int(user.forgot_password_otp):
+                print("Invalid OTP")
+                return render(request, 'expense/forgot_password.html', {
+                    'email': email_,
+                    'otp_sent': True,
+                    'error': 'Invalid OTP. Please try again.'
+                })
+
+            print("OTP Verified")
+            return render(request, 'expense/reset_password.html', {
+                'email': email_
+            })
+
+    return render(request, 'expense/forgot_password.html')
+
+def reset_password(request):
+    if request.method == 'POST':
+        email_ = request.POST['email']
+        password_ = request.POST['password']
+        confirm_password_ = request.POST['confirm_password']
+        
+        if password_ != confirm_password_:
+            print("Password does not match")
+            return render(request,'expense/reset_password.html',{'email':email_})
+        
+        if not is_valid_password(password_)[0]:
+            print(is_valid_password(password_)[1])
+            return render(request,'expense/reset_password.html',{'email':email_})
+        
+        user=Users.objects.get(email=email_)
+        user.password=make_password(password_)
+        print("Password Updated Successfully")
+        user.save()
+        return redirect('login')
+    return render(request,'expense/reset_password.html')
 
 # @login_required
 def index(request):

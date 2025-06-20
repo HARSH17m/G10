@@ -11,7 +11,10 @@ class Users(BaseClass):
     email=models.EmailField(max_length=255,null=False,blank=False)
     password=models.CharField(max_length=255,null=False,blank=False)
     otp=models.IntegerField(default=654321,null=False,blank=False)
+    forgot_password_otp=models.IntegerField(default=654321,null=False,blank=False)
     is_active=models.BooleanField(default=False)
+    def __str__(self):
+        return self.email
 
 class UserDetails(BaseClass):
     user_id=models.ForeignKey(Users,on_delete=models.CASCADE)
