@@ -10,4 +10,5 @@ urlpatterns = [
     path('index/',index,name="index"),
     path('analytics/',analytics,name="analytics"),
     path('shopping_list_and_bills/',shopping_list_and_bills,name="shopping_list_and_bills"),
+    path('recent-expenses/',recent_expenses,name="recent_expenses"),
 ]

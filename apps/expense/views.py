@@ -123,3 +123,6 @@ def details(request):
 
 def shopping_list_and_bills(request):
     return render(request,'expense/shopping_list_and_bills.html')
+
+def recent_expenses(request):#HARSH
+    return render(request,'expense/recent_expenses.html')
