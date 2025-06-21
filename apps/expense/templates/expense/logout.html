@@ -1,0 +1,24 @@
+{% extends 'expense/base.html' %}
+{% block title %}Logout{% endblock %}
+{% block Page %}Logout{% endblock %}
+{% block body %}
+<script>
+    window.history.pushState(null, "", window.location.href);
+
+    window.onpopstate = function () {
+        // If user tries to go back, push them forward
+        window.history.pushState(null, "", window.location.href);
+    };
+
+    // OPTIONAL: kill keyboard back (alt+left, backspace)
+    window.addEventListener('keydown', function (e) {
+        if ((e.altKey && e.key === 'ArrowLeft') || e.key === 'Backspace') {
+            e.preventDefault();
+        }
+    });
+</script>
+<div class="container text-center mt-5">
+    <h2>You have been logged out securely.</h2>
+    <a href="{% url 'login' %}" class="btn btn-primary mt-3">Login Again</a>
+  </div>
+{% endblock %}

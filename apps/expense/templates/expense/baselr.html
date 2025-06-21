@@ -17,6 +17,8 @@
     <style>
           body {
             background-color: rgb(88, 75, 158);
+            /* background-color: rgb(125, 117, 173); */
+            /* background-color: rgb(86, 144, 231); */
           }
             {% block styles %}{% endblock %}
     </style>
@@ -25,6 +27,19 @@
   <body
     class="d-flex justify-content-center align-items-center vh-100 bg-gradient"
   >
+  {% comment %} ALERT {% endcomment %}
+  {% if messages %}
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+    {% for message in messages %}
+    <div class="alert alert-dismissible fade show shadow-lg mb-2 {% if message.tags == 'success' %}alert-success border-success{% endif %} {% if message.tags == 'error' %}alert-danger border-danger{% endif %} {% if message.tags == 'warning' %}alert-warning border-warning{% endif %} {% if message.tags == 'info' %}alert-info border-info{% endif %}"
+      role="alert">
+      {{ message }}
+      <p type="button" class="btn-close position-absolute top-0 end-0" aria-label="Close" onclick="this.parentElement.style.display='none';"></p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <!-- message end -->
     {% block body %}
     {% endblock %}
 
