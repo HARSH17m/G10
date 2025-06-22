@@ -7,13 +7,16 @@
 {% endblock %}
 {% block body %}
 <div class="container py-4">
-  <!-- Info Alert with Timer -->
+
+  <!-- Info Alert -->
   <div class="alert alert-warning d-flex justify-content-between align-items-center">
     <div>
       <i class="bi bi-info-circle"></i>
-      This list will auto-delete in <span id="timer" class="fw-bold text-danger">10:00</span> (10 minute demo).
+      Only <strong>shopped items</strong> will be saved. Unshopped items will remain for the next day.
+      Reset in <span id="midnightTimer" class="fw-bold text-danger">--:--:--</span> (local time).
+      <br><span class="text-muted small">This list resets every day at 00:00 (local time).</span>
     </div>
-    <button class="btn btn-sm btn-outline-dark">View All Transactions</button>
+    <a href="{% url 'recent_expenses' %}" class="btn btn-sm btn-outline-dark">View All Transactions</a>
   </div>
 
   <!-- FORM START -->
@@ -30,22 +33,42 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Sample Row -->
-        <tr>
-          <td>1</td>
-          <td><input type="text" name="item_0" class="form-control" placeholder="Item name"></td>
-          <td><input type="number" name="expected_0" step="0.01" class="form-control expected"></td>
-          <td><input type="number" name="paid_0" step="0.01" class="form-control paid" oninput="updateTotal()"></td>
-          <td class="d-flex flex-column gap-2">
-            <div class="form-check d-flex justify-content-center">
-              <input class="form-check-input me-2 shopped-radio" type="checkbox" name="shopped_0">
-              <label class="form-check-label">Shopped</label>
-            </div>
-            <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteRow(this)">
-              <i class="bi bi-trash"></i> Delete
-            </button>
-          </td>
-        </tr>
+        {% if request.session.unshopped_items %}
+          {% for item in request.session.unshopped_items %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><input type="text" name="item_{{ forloop.counter0 }}" class="form-control" value="{{ item.item }}"></td>
+            <td><input type="number" name="expected_{{ forloop.counter0 }}" step="0.01" class="form-control expected" value="{{ item.expected }}"></td>
+            <td><input type="number" name="paid_{{ forloop.counter0 }}" step="0.01" class="form-control paid" value="{{ item.paid }}" oninput="updateTotal()"></td>
+            <td class="d-flex flex-column gap-2">
+              <div class="form-check d-flex justify-content-center">
+                <input class="form-check-input me-2 shopped-radio" type="checkbox" name="shopped_{{ forloop.counter0 }}">
+                <label class="form-check-label">Shopped</label>
+              </div>
+              <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteRow(this)">
+                <i class="bi bi-trash"></i> Delete
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <!-- Sample Row -->
+          <tr>
+            <td>1</td>
+            <td><input type="text" name="item_0" class="form-control" placeholder="Item name"></td>
+            <td><input type="number" name="expected_0" step="0.01" class="form-control expected"></td>
+            <td><input type="number" name="paid_0" step="0.01" class="form-control paid" oninput="updateTotal()"></td>
+            <td class="d-flex flex-column gap-2">
+              <div class="form-check d-flex justify-content-center">
+                <input class="form-check-input me-2 shopped-radio" type="checkbox" name="shopped_0">
+                <label class="form-check-label">Shopped</label>
+              </div>
+              <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteRow(this)">
+                <i class="bi bi-trash"></i> Delete
+              </button>
+            </td>
+          </tr>
+        {% endif %}
       </tbody>
     </table>
 
@@ -106,10 +129,10 @@
     rows.forEach((row, index) => {
       row.children[0].textContent = index + 1;
       row.querySelectorAll('input').forEach(input => {
-        if (input.name.startsWith('item_')) input.name = `item_${index}`;
-        if (input.name.startsWith('expected_')) input.name = `expected_${index}`;
-        if (input.name.startsWith('paid_')) input.name = `paid_${index}`;
-        if (input.name.startsWith('shopped_')) input.name = `shopped_${index}`;
+        if (input.name.includes('item_')) input.name = `item_${index}`;
+        if (input.name.includes('expected_')) input.name = `expected_${index}`;
+        if (input.name.includes('paid_')) input.name = `paid_${index}`;
+        if (input.name.includes('shopped_')) input.name = `shopped_${index}`;
       });
     });
   }
@@ -124,31 +147,21 @@
     document.getElementById('totalAmount').textContent = total.toFixed(2);
   }
 
-  // Countdown Timer (10 mins)
-  let timeLeft = 600;
-  const timer = document.getElementById('timer');
-  const countdown = setInterval(() => {
-    timeLeft--;
-    const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-    const seconds = String(timeLeft % 60).padStart(2, '0');
-    timer.textContent = `${minutes}:${seconds}`;
-    if (timeLeft <= 0) {
-      clearInterval(countdown);
-      deleteUnshoppedRows();
-    }
-  }, 1000);
+  // Countdown (Display only, no delete)
+  function updateMidnightCountdown() {
+  const now = new Date();
+  const midnight = new Date();
+  midnight.setHours(24, 0, 0, 0); // Set to 00:00 next day
 
-  function deleteUnshoppedRows() {
-    const rows = document.querySelectorAll('#shoppingTable tbody tr');
-    rows.forEach(row => {
-      const radio = row.querySelector('.shopped-radio');
-      if (!radio.checked) {
-        row.remove();
-      }
-    });
-    alert("Unshopped rows auto-deleted.");
-    renumberRows();
-    updateTotal();
-  }
+  const diff = midnight - now;
+  const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+  const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+  const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+
+  document.getElementById('midnightTimer').textContent = `${hours}:${minutes}:${seconds}`;
+}
+
+// Start countdown
+setInterval(updateMidnightCountdown, 1000);
 </script>
 {% endblock %}

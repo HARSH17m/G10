@@ -3,9 +3,9 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
-from django.utils.timezone import localtime,now, timedelta
+from django.utils.timezone import localtime,now,timedelta
 
-
+from collections import defaultdict
 from functools import wraps
 from uuid import UUID
 
@@ -140,7 +140,7 @@ def details(request, uid):
 
     return render(request, 'details.html', {'user': user})
 
-def forgot_password(request):  # HARSH
+def forgot_password(request): # HARSH
     if request.method == 'POST':
         email_ = request.POST['email']
 
@@ -195,7 +195,7 @@ def forgot_password(request):  # HARSH
 
     return render(request, 'expense/forgot_password.html')
 
-def reset_password(request):
+def reset_password(request): # HARSH
     if request.method == 'POST':
         email_ = request.POST['email']
         password_ = request.POST['password']
@@ -232,8 +232,11 @@ def save_transactions(request):
         if not uid_str:
             messages.error(request, "Session expired. Please log in again.")
             return redirect('login')
+        
         user = Users.objects.get(UID=UUID(uid_str))
+        unshopped_items = []
         transaction_count = 0
+
         index = 0
         while True:
             item_key = f'item_{index}'
@@ -247,21 +250,32 @@ def save_transactions(request):
             shopped = request.POST.get(shopped_key)
 
             if item is None and expected is None and paid is None:
-                if transaction_count == 0:
-                    messages.info(request, "No items were marked as shopped.")
-                break  # No more rows
+                break
 
-            if shopped:  # Only save if marked as shopped
+            if shopped:
                 Transaction.objects.create(
                     user=user,
                     item_name=item,
                     expected_amount=expected or 0,
                     paid_amount=paid or 0,
                 )
+                transaction_count += 1
+            else:
+                unshopped_items.append({
+                    'item': item,
+                    'expected': expected,
+                    'paid': paid,
+                })
 
             index += 1
+
+        # Optionally: Store unshopped items in session to prefill later
+        request.session['unshopped_items'] = unshopped_items
+
         if transaction_count > 0:
-            messages.success(request, f"{transaction_count} transaction(s) saved successfully.")
+            messages.success(request, f"{transaction_count} item(s) saved successfully.")
+        else:
+            messages.info(request, "No items were marked as shopped.")
 
         return redirect('shopping_list_and_bills')
 
