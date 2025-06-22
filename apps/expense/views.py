@@ -1,13 +1,15 @@
-from django.shortcuts import render,redirect
 from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
+from django.db.models import Min, Max
+from django.shortcuts import render,redirect
 from django.utils.timezone import localtime,now,timedelta
 
-from collections import defaultdict
 from functools import wraps
 from uuid import UUID
+from decimal import Decimal
+from datetime import datetime
 
 from .models import Users,UserDetails,Transaction
 from .helpers import *
@@ -224,7 +226,14 @@ def analytics(request):
     return render(request,'expense/analytics.html')
 
 def shopping_list_and_bills(request):
-    return render(request,'expense/shopping_list_and_bills.html')
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        messages.warning(request, "Please log in to view your recent expenses.")
+        return redirect('login')
+
+    unshopped_key = f'unshopped_items_{user_uid}'
+    unshopped_items = request.session.get(unshopped_key, [])
+    return render(request,'expense/shopping_list_and_bills.html',{"unshopped_items":unshopped_items})
 
 def save_transactions(request):
     if request.method == 'POST':
@@ -270,7 +279,7 @@ def save_transactions(request):
             index += 1
 
         # Optionally: Store unshopped items in session to prefill later
-        request.session['unshopped_items'] = unshopped_items
+        request.session[f'unshopped_items_{uid_str}'] = unshopped_items
 
         if transaction_count > 0:
             messages.success(request, f"{transaction_count} item(s) saved successfully.")
@@ -281,31 +290,101 @@ def save_transactions(request):
 
     return redirect('shopping_list_and_bills')
 
-def recent_expenses(request):#HARSH
-    user_uid = request.session.get('user_id')
+# def recent_expenses(request):#HARSH
+#     user_uid = request.session.get('user_id')
 
+#     if not user_uid:
+#         messages.warning(request, "Please log in to view your recent expenses.")
+#         return redirect('login')  # or your preferred login route
+
+#     # Fetch user's transactions, newest first
+#     expenses = Transaction.objects.filter(user_id=user_uid).order_by('-transaction_time')
+
+#     # Optional: Format date if needed in view instead of template
+#     for e in expenses:
+#         e.formatted_date = localtime(e.transaction_time).strftime('%d-%b-%Y')
+
+#     return render(request, 'expense/recent_expenses.html', {
+#         'expenses': expenses
+#     })
+
+def recent_expenses(request):
+    user_uid = request.session.get('user_id')
     if not user_uid:
         messages.warning(request, "Please log in to view your recent expenses.")
-        return redirect('login')  # or your preferred login route
+        return redirect('login')
 
-    # Fetch user's transactions, newest first
+    # ----------------------------
+    # Handle POST (Group + Notes)
+    # ----------------------------
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected')  # list of transaction UIDs
+        group_name = request.POST.get('group_name', '').strip()
+        
+        # Update group for selected transactions
+        if selected_ids and group_name:
+            Transaction.objects.filter(user_id=user_uid, UID__in=selected_ids).update(group_name=group_name)
+
+        # Update notes
+        for key in request.POST:
+            if key.startswith('note_'):
+                tx_id = key.split('_')[1]
+                note_text = request.POST.get(key, '')[:100]
+                Transaction.objects.filter(user_id=user_uid, UID=tx_id).update(note=note_text)
+
+        return redirect('recent_expenses')
+
+    # ----------------------------
+    # Handle GET (Filtering)
+    # ----------------------------
     expenses = Transaction.objects.filter(user_id=user_uid).order_by('-transaction_time')
 
-    # Optional: Format date if needed in view instead of template
+    # Filters
+    group_filter = request.GET.get('group')
+    date_filter = request.GET.get('month_year')
+    max_price = request.GET.get('price_max')
+
+    if group_filter and group_filter != 'all':
+        expenses = expenses.filter(group_name=group_filter)
+    
+    if date_filter:
+        try:
+            date_obj = datetime.strptime(date_filter, '%Y-%m')
+            expenses = expenses.filter(
+                transaction_time__year=date_obj.year,
+                transaction_time__month=date_obj.month
+            )
+        except:
+            pass
+
+    if max_price:
+        try:
+            expenses = expenses.filter(paid_amount__lte=Decimal(max_price))
+        except:
+            pass
+
+    # For sorting UI options
+    all_groups = Transaction.objects.filter(user_id=user_uid).values_list('group_name', flat=True).distinct()
+    all_groups = [g for g in all_groups if g]  # remove nulls
+
+    month_years = Transaction.objects.filter(user_id=user_uid).dates('transaction_time', 'month', order='DESC')
+    price_range = Transaction.objects.filter(user_id=user_uid).aggregate(min_price=Min('paid_amount'), max_price=Max('paid_amount'))
+
+    # Set defaults if null
     for e in expenses:
+        if not e.group_name:
+            e.group_name = "Ungrouped"
+        if not e.note:
+            e.note = "None"
         e.formatted_date = localtime(e.transaction_time).strftime('%d-%b-%Y')
 
     return render(request, 'expense/recent_expenses.html', {
-        'expenses': expenses
-    })
+        'expenses': expenses,
+        'groups': all_groups,
+        'month_years': month_years,
+        'price_range': price_range
+})
 
-def logout(request):
-    if 'user_id' in request.session:
-        del request.session['user_id']
-        messages.success(request, "Logged out successfully.")
-    else:
-        messages.info(request, "You were not logged in.")
-    return redirect('login')
 
 def dashboard_view(request):
     if not request.session.get('user_email'):
@@ -350,3 +429,45 @@ def dashboard_view(request):
         "selected_group": selected_group,
         "inflation_val": int(inflation * 100),
     })
+
+def logout(request):
+    if 'user_id' in request.session:
+        request.session.flush()
+        messages.success(request, "Logged out successfully.")
+    else:
+        messages.info(request, "You were not logged in.")
+    return redirect('login')
+
+# def logout(request):
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        return redirect('login')
+
+    uid = UUID(user_uid)
+
+    unshopped_key = f'unshopped_items_{user_uid}'
+    unshopped_items = request.session.get(unshopped_key, [])
+
+    # Save unshopped items
+    for item in unshopped_items:
+        LogoutData.objects.create(
+            user_id=uid,
+            item_name=item['item'],
+            expected_amount=item['expected'] or 0,
+            paid_amount=item['paid'] or 0,
+            was_shopped=False
+        )
+
+    shopped_items = request.session.get(f'shopped_items_{user_uid}', [])
+    for item in shopped_items:
+        LogoutData.objects.create(
+            user_id=uid,
+            item_name=item['item'],
+            expected_amount=item['expected'] or 0,
+            paid_amount=item['paid'] or 0,
+            was_shopped=True
+        )
+
+    request.session.flush()
+    messages.success(request, "Session ended. Data stored safely.")
+    return redirect('login')

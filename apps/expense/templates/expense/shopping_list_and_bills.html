@@ -33,8 +33,8 @@
         </tr>
       </thead>
       <tbody>
-        {% if request.session.unshopped_items %}
-          {% for item in request.session.unshopped_items %}
+        {% if unshopped_items %}
+          {% for item in unshopped_items %}
           <tr>
             <td>{{ forloop.counter }}</td>
             <td><input type="text" name="item_{{ forloop.counter0 }}" class="form-control" value="{{ item.item }}"></td>

@@ -1,7 +1,7 @@
 {% extends "expense/base.html" %}
 {% block title %}Recent Expenses{% endblock  %}
 {% block page %}RECENT EXPENSE's{% endblock  %}
-{% block body %}
+{% comment %} {% block body %}
 <div class="container mt-5">
     <h2 class="text-center mb-4">Recent Expenses</h2>
     
@@ -27,5 +27,86 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
+{% endblock %} {% endcomment %}
+
+{% block body %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Recent Expenses</h2>
+
+    <!-- FILTER BAR -->
+    <form method="get" class="row mb-4 g-3">
+        <div class="col-md-3">
+            <select name="group" class="form-select">
+                <option value="all">All Groups</option>
+                {% for g in groups %}
+                <option value="{{ g }}">{{ g }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="month_year" class="form-select">
+                <option value="">All Months</option>
+                {% for date in month_years %}
+                <option value="{{ date|date:'Y-m' }}">{{ date|date:'F Y' }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="range" class="form-range" name="price_max"
+                min="{{ price_range.min_price }}" max="{{ price_range.max_price }}" step="1"
+                oninput="document.getElementById('rangeValue').innerText = '₹' + this.value;">
+            <label>Max Price: <span id="rangeValue">₹{{ price_range.max_price }}</span></label>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-dark w-100">Apply Filters</button>
+        </div>
+    </form>
+
+    <!-- MAIN FORM -->
+    <form method="post">
+        {% csrf_token %}
+        <table class="table table-bordered table-striped shadow">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Select</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Item Name</th>
+                    <th scope="col">Price (₹)</th>
+                    <th scope="col">Group</th>
+                    <th scope="col">Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td><input type="checkbox" name="selected" value="{{ expense.UID }}"></td>
+                    <td>{{ expense.formatted_date }}</td>
+                    <td>{{ expense.item_name }}</td>
+                    <td>₹{{ expense.paid_amount }}</td>
+                    <td>{{ expense.group_name }}</td>
+                    <td>
+                        <textarea name="note_{{ expense.UID }}" maxlength="100"
+                            class="form-control" rows="2">{{ expense.note }}</textarea>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No expenses found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- GROUP NAME INPUT -->
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <input type="text" name="group_name" class="form-control" placeholder="Enter group name for selected">
+            </div>
+            <div class="col-md-6 text-end">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}
