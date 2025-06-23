@@ -51,3 +51,14 @@ class Transaction(BaseClass):
 
     def __str__(self):
         return f"{self.item_name} - ₹{self.paid_amount} ({self.user.email})"
+    
+class LogoutData(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    item_name = models.CharField(max_length=255)
+    expected_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    was_shopped = models.BooleanField(default=False)
+    saved_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.item_name} - {self.user.email} - {'Shopped' if self.was_shopped else 'Unshopped'}"
