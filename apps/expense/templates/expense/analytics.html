@@ -21,7 +21,7 @@
                 <label for="group" class="form-label">Select Group</label>
                 <select name="group" id="group" class="form-select" required>
                     <option value="" disabled {% if not selected_group %}selected{% endif %}>-- Choose --</option>
-                    {% for group in all_groups %}
+                    {% for group in group_keys %}
                         <option value="{{ group }}" {% if group == selected_group %}selected{% endif %}>{{ group }}</option>
                     {% endfor %}
                 </select>
@@ -37,50 +37,53 @@
         </form>
 
         {% if chart_data %}
-        <div class="row mt-5">
+        <div class="row m-5 g-2 bg-dark justify-content-center align-items-center">
             {% for range_label, data in chart_data.items %}
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm p-3">
-                    <h5 class="card-title text-center">{{ range_label }} Chart</h5>
+            <div class="col-md-5 m-4 bg-light">
+                <div class="carzd shadow-sm p-3">
+                    <h5 class="card-title text-center">{{ range_label }} Chart 1</h5>
                     <canvas id="chart_{{ forloop.counter }}"></canvas>
                 </div>
             </div>
             {% endfor %}
         </div>
-
         <script>
-            {% for range_label, data in chart_data.items %}
-            new Chart(document.getElementById("chart_{{ forloop.counter }}").getContext('2d'), {
-                type: 'line',
+            {% for chart_id, data in chart_data.items %}
+            var ctx = document.getElementById('chart_{{ forloop.counter }}').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',  // or 'bar'
                 data: {
-                    labels: {{ data|pluck:"label"|safe }},
-                    datasets: [{
-                        label: "{{ selected_group }} ({{ range_label }})",
-                        data: {{ data|pluck:"value"|safe }},
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: false,
-                        tension: 0.3
-                    }]
+                    labels: {{ data.labels|safe }},
+                    datasets: [
+                        {
+                            label: 'Base Value',
+                            data: {{ data.base_values|safe }},
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                            fill: false
+                        },
+                        {
+                            label: 'Inflated Value',
+                            data: {{ data.inflated_values|safe }},
+                            borderColor: 'red',
+                            backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                            fill: false
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { display: true }
-                    },
-                    scales: {
-                        y: {
-                            title: { display: true, text: '₹ Value' },
-                            beginAtZero: true
-                        },
-                        x: {
-                            title: { display: true, text: 'Date' }
+                        title: {
+                            display: true,
+                            text: '{{ chart_id }}'
                         }
                     }
                 }
             });
             {% endfor %}
-        </script>
+            </script>
+            
         {% endif %}
     </div>
 {% endblock %}

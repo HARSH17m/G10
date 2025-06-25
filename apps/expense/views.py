@@ -11,10 +11,11 @@ from uuid import UUID
 from decimal import Decimal
 from datetime import datetime
 
-from .models import Users,UserDetails,Transaction
+from .models import Users,UserDetails,UserSalary,Transaction,LogoutData
 from .helpers import *
 
 import random
+import datetime
 
 # Create your views here.
 # def login_required(view_func):
@@ -129,13 +130,14 @@ def details(request, uid):
 
     if request.method == 'POST':
         UserDetails.objects.create(
-            user_id=user,
+            user_id=user.UID,
             full_name=request.POST['full_name'],
             dob=request.POST['dob'],
             gender=request.POST['gender'],
             state=request.POST['state'],
             city=request.POST['city'],
-            occupation=request.POST['occupation']
+            occupation=request.POST['occupation'],
+            is_filled=True,
         )
         messages.success(request, "Details submitted successfully. You can now log in.")
         return redirect('login')
@@ -223,21 +225,173 @@ def index(request):
     return render(request,'expense/index.html')
 
 def profile(request):
-    user_uid = request.session.get('user_uid')
+    user_uid = request.session.get('user_id')
     if not user_uid:
         messages.warning(request, "Please log in to view your recent expenses.")
         return redirect('login')
-    user=UserDetails.objects.get(user=UUID(user_uid))
+    user=Users.objects.get(UID=UUID(user_uid))
+    user_d=UserDetails.objects.get(user=UUID(user_uid))
     data={
-        'user':user
+        'user':user,
+        'user_d':user_d,
     }
-    return render(request,'expense/profile.html',user)
+    return render(request,'expense/profile.html',data)
 
 def expense_tracker(request):
-    return render(request,'expense/expense_tracker.html')
- 
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        messages.warning(request, "Please log in to view your recent expenses.")
+        return redirect('login')
+    user_instance = Users.objects.get(UID=UUID(user_uid))
+    user_details = UserDetails.objects.get(user=user_instance)
+    user_salary, created = UserSalary.objects.get_or_create(
+        user=user_instance,
+        defaults={
+            'salary': 0,
+            'saving': 0,
+            'fixed_expenses': {},
+            'emergency_percent': 10,
+            'personal_percent': 40,
+            'remaining_salary': 0,
+            'reset_day': 1
+        }
+    )
+
+    today_day = datetime.datetime.today().day
+    is_reset_day = user_salary.reset_day == today_day
+    is_first_time = created or (user_salary.salary == 0)
+
+    # this is used to save data from form
+    if request.method == 'POST' and (is_reset_day or is_first_time):
+        salary = int(request.POST.get('salary', 0))
+        saving = int(request.POST.get('saving', 0))
+        emergency_percent = int(request.POST.get('emergency_percent', 10))
+        personal_percent = int(request.POST.get('personal_percent', 40))
+        reset_day = int(request.POST.get('reset_day', 1))
+        fixed_expenses_raw = request.POST.get('fixed_expenses', '{}')
+
+        import json
+        fixed_expenses = json.loads(fixed_expenses_raw)
+        
+        user_salary.salary = salary
+        user_salary.saving = saving
+        user_salary.emergency_percent = emergency_percent
+        user_salary.personal_percent = personal_percent
+
+        user_salary.reset_day = reset_day
+
+        user_salary.fixed_expenses = fixed_expenses
+        user_salary.remaining_salary = user_salary.calculate_remaining()
+        
+        user_salary.save()
+        return redirect('expense_tracker')
+
+    show_popup = is_first_time or is_reset_day
+    allow_edit = is_first_time or is_reset_day
+
+    context = {
+        'user':user_instance,
+        'userd':user_details,
+        'is_employed': user_details.occupation == 'Employed',
+        'show_popup': show_popup,
+        'user_salary': user_salary,
+        'range_1_28': range(1, 29),
+        'allow_edit': allow_edit,
+    }
+    return render(request, 'expense/expense_tracker.html', context)
+
 def analytics(request):
-    return render(request,'expense/analytics.html')
+    return render(request, 'expense/analytics.html')
+
+ 
+# def analytics(request):
+#     user_uid = request.session.get('user_id')
+#     if not user_uid:
+#         messages.warning(request, "Please log in to view your recent expenses.")
+#         return redirect('login')
+
+#     user = Users.objects.get(UID=UUID(user_uid))
+
+#     # Dictionary of groups and their values
+#     all_groups = {
+#         'Salary': user.savings,
+#         'EMF': user.emergency_funds,
+#     }
+
+#     selected_group = request.POST.get('group')
+#     inflation_val = float(request.POST.get('inflation', 0)) if request.method == 'POST' else 0
+
+#     chart_data = {}
+#     if selected_group:
+#         base_val = all_groups.get(selected_group, 0)
+#         chart_data = {
+#         "1-Month Projection": {
+#         "labels": ["1W", "2W", "3W",],
+#         "base_values": [
+#             base_val * 1,
+#             base_val * 2,
+#             base_val * 3
+#         ],
+#         "inflated_values": [
+#             base_val * 1 * (1 + (inflation_val * 1 / 100)),
+#             base_val * 2 * (1 + (inflation_val * 2 / 100)),
+#             base_val * 3 * (1 + (inflation_val * 3 / 100))
+#         ]
+#     },
+#         "3-Month Projection": {
+#         "labels": ["Jan", "Feb", "Mar"],
+#         "base_values": [
+#             base_val * 1,
+#             base_val * 2,
+#             base_val * 3
+#         ],
+#         "inflated_values": [
+#             base_val * 1 * (1 + (inflation_val * 1 / 100)),
+#             base_val * 2 * (1 + (inflation_val * 2 / 100)),
+#             base_val * 3 * (1 + (inflation_val * 3 / 100))
+#         ]
+#     },
+#         "1-Year Projection": {
+#         "labels": ["Jan-Mar","Apr-Jun","Jul-Sep","Oct-Dec",],
+#         "base_values": [
+#             base_val * 1,
+#             base_val * 4,
+#             base_val * 7,
+#             base_val * 10,
+#         ],
+#         "inflated_values": [
+#             base_val * 1 * (1 + (inflation_val * 1 / 100)),
+#             base_val * 4 * (1 + (inflation_val * 4 / 100)),
+#             base_val * 7 * (1 + (inflation_val * 7 / 100)),
+#             base_val * 10 * (1 + (inflation_val * 10 / 100)),
+#         ]
+#     },
+#         "5-Year Projection": {
+#         "labels": ["1 Y", "2 Y", "3 Y", "4 Y", "5 Y"],
+#         "base_values": [
+#             base_val * 12 * 1,
+#             base_val * 12 * 2,
+#             base_val * 12 * 3,
+#             base_val * 12 * 4,
+#             base_val * 12 * 5
+#         ],
+#         "inflated_values": [
+#             base_val * 12 * 1 * (1 + (inflation_val * 12 / 100)),
+#             base_val * 12 * 2 * (1 + (inflation_val * 24 / 100)),
+#             base_val * 12 * 3 * (1 + (inflation_val * 36 / 100)),
+#             base_val * 12 * 4 * (1 + (inflation_val * 48 / 100)),
+#             base_val * 12 * 5 * (1 + (inflation_val * 60 / 100))
+#         ]
+#     }
+#     }
+
+#     return render(request, 'expense/analytics.html', {
+#         'all_groups': all_groups,              # Dictionary of group:value
+#         'group_keys': all_groups.keys(),       # For use in dropdown
+#         'selected_group': selected_group,
+#         'inflation_val': inflation_val,
+#         'chart_data': chart_data
+#     })
 
 def shopping_list_and_bills(request):
     user_uid = request.session.get('user_id')

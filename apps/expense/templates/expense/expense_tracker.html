@@ -1,7 +1,142 @@
 {% extends 'expense/base.html' %}
+
 {% block title %}EXPENSE TRACKER{% endblock %}
 {% block styles %}{% endblock %}
-{% block page %}ANALYTICS{% endblock %}
+{% block page %}EXPENSE TRACKER{% endblock %}
 {% block body %}
+{% if is_employed %}
+  {% if show_popup %}
+  <div class="container mt-4">
+    <form method="post">
+      {% csrf_token %}
+      <div class="card p-3 shadow-sm">
+        <h5 class="mb-3">Monthly Salary Input</h5>
+
+        <div class="mb-3">
+          <label for="salary" class="form-label">Enter Your Salary</label>
+          <input type="number" class="form-control" id="salary" name="salary"
+                 value="{{ user_salary.salary|default:0 }}"
+                 {% if not allow_edit %}readonly{% endif %} required>
+
+          {% if not is_first_time and not allow_edit %}
+            <small class="text-muted">Editable again on reset day.</small>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Select Reset Day (1–28)</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for day in range_1_28 %}
+              <input type="radio" class="btn-check" name="reset_day" id="day{{ day }}" value="{{ day }}"
+                     {% if user_salary.reset_day == day %}checked{% endif %} required>
+              <label class="btn btn-outline-primary btn-sm m-1" for="day{{ day }}">{{ day }}</label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Trigger Modal -->
+        <button type="button" class="btn btn-success"
+                data-bs-toggle="modal" data-bs-target="#confirmModal"
+                {% if not allow_edit %}disabled{% endif %}>
+          Save Salary
+        </button>
+      </div>
+
+      <!-- Confirm Modal -->
+      <div class="modal fade" id="confirmModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title">Confirm Submission</h5>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to save the salary and reset day?</p>
+              <p><strong>NOTE:</strong> Values will be saved immediately upon confirmation.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Go Back</button>
+              <button type="submit" class="btn btn-success">Confirm & Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    var myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {
+      backdrop: 'static',
+      keyboard: false
+    });
+    window.addEventListener('load', function () {
+      myModal.show();
+    });
+    </script>
+    {% else %}
+    <div class="container mt-4">
+  <form method="post">
+    {% csrf_token %}
+    <div class="card p-4 shadow-sm">
+      <h4 class="mb-3">Update Your Salary Settings</h4>
+
+      <!-- Salary -->
+      <div class="mb-3">
+        <label for="salary" class="form-label">Salary (₹)</label>
+        <input type="number" class="form-control" id="salary" name="salary"
+               value="{{ user_salary.salary|default:0 }}" min="0" required>
+      </div>
+
+      <!-- Fixed Expenses (JSON) -->
+      <div class="mb-3">
+        <label for="fixed_expenses" class="form-label">Fixed Expenses (in JSON format)</label>
+        <textarea class="form-control" id="fixed_expenses" name="fixed_expenses" rows="4"
+                  placeholder='{"milk": 800, "electricity": 1200}'
+                  required>{{ user_salary.fixed_expenses|default:"{}" }}</textarea>
+        <small class="text-muted">Enter as key-value pairs, e.g. {"milk": 800}</small>
+      </div>
+
+      <!-- Saving -->
+      <div class="mb-3">
+        <label for="saving" class="form-label">Monthly Saving (₹)</label>
+        <input type="number" class="form-control" id="saving" name="saving"
+               value="{{ user_salary.saving|default:0 }}" min="0" required>
+      </div>
+
+      <!-- Emergency Fund % -->
+      <div class="mb-3">
+        <label for="emergency_percent" class="form-label">Emergency Fund (%)</label>
+        <input type="range" class="form-range" id="emergency_percent" name="emergency_percent"
+               min="5" max="50" value="{{ user_salary.emergency_percent|default:10 }}"
+               oninput="document.getElementById('emg_val').innerText = this.value + '%'">
+        <p class="text-muted">Selected: <span id="emg_val">{{ user_salary.emergency_percent|default:10 }}%</span></p>
+      </div>
+
+      <!-- Personal Expense % -->
+      <div class="mb-3">
+        <label for="personal_percent" class="form-label">Personal Expense (%)</label>
+        <input type="range" class="form-range" id="personal_percent" name="personal_percent"
+               min="5" max="70" value="{{ user_salary.personal_percent|default:40 }}"
+               oninput="document.getElementById('per_val').innerText = this.value + '%'">
+        <p class="text-muted">Selected: <span id="per_val">{{ user_salary.personal_percent|default:40 }}%</span></p>
+      </div>
+
+      <!-- Reset Day -->
+      <div class="mb-3">
+        <label class="form-label">Reset Day (1–28)</label>
+        <div class="d-flex flex-wrap gap-2">
+          {% for day in range_1_28 %}
+            <input type="radio" class="btn-check" name="reset_day" id="day{{ day }}" value="{{ day }}"
+                   {% if user_salary.reset_day == day %}checked{% endif %} required>
+            <label class="btn btn-outline-primary btn-sm m-1" for="day{{ day }}">{{ day }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-success mt-3">Update Salary Info</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+{% endif %}
 
 {% endblock %}
