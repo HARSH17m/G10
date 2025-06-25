@@ -140,7 +140,7 @@ def details(request, uid):
         messages.success(request, "Details submitted successfully. You can now log in.")
         return redirect('login')
 
-    return render(request, 'details.html', {'user': user})
+    return render(request, 'expense/details.html', {'user': user})
 
 def forgot_password(request): # HARSH
     if request.method == 'POST':
@@ -221,6 +221,20 @@ def reset_password(request): # HARSH
 # @login_required
 def index(request):
     return render(request,'expense/index.html')
+
+def profile(request):
+    user_uid = request.session.get('user_uid')
+    if not user_uid:
+        messages.warning(request, "Please log in to view your recent expenses.")
+        return redirect('login')
+    user=UserDetails.objects.get(user=UUID(user_uid))
+    data={
+        'user':user
+    }
+    return render(request,'expense/profile.html',user)
+
+def expense_tracker(request):
+    return render(request,'expense/expense_tracker.html')
  
 def analytics(request):
     return render(request,'expense/analytics.html')
@@ -230,7 +244,11 @@ def shopping_list_and_bills(request):
     if not user_uid:
         messages.warning(request, "Please log in to view your recent expenses.")
         return redirect('login')
-
+    # if request.user.is_authenticated:
+    #     unshopped_items = unshopped_items.objects.filter(user=request.user)
+    # else:
+    #     unshopped_items = []
+    
     unshopped_key = f'unshopped_items_{user_uid}'
     unshopped_items = request.session.get(unshopped_key, [])
     return render(request,'expense/shopping_list_and_bills.html',{"unshopped_items":unshopped_items})
@@ -384,7 +402,6 @@ def recent_expenses(request):
         'month_years': month_years,
         'price_range': price_range
 })
-
 
 def dashboard_view(request):
     if not request.session.get('user_email'):
