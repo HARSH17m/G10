@@ -229,11 +229,27 @@ def profile(request):
     if not user_uid:
         messages.warning(request, "Please log in to view your recent expenses.")
         return redirect('login')
-    user=Users.objects.get(UID=UUID(user_uid))
-    user_d=UserDetails.objects.get(user=UUID(user_uid))
+    user_instance=Users.objects.get(UID=UUID(user_uid))
+    user_details, created = UserDetails.objects.get_or_create(
+    user=user_instance,
+    defaults={
+        'full_name': '',
+        'dob': '2000-01-01',  # default valid date
+        'gender': '',
+        'state': '',
+        'city': '',
+        'occupation': '',
+        'is_filled': False
+        }
+    )
+    gender_icon = {
+        'male': 'bi-gender-male text-primary',
+        'female': 'bi-gender-female text-danger',
+    }.get(user_details.gender.lower(), 'bi-gender-ambiguous text-warning')
     data={
-        'user':user,
-        'user_d':user_d,
+        'gender_icon':gender_icon,
+        'user':user_instance,   
+        'user_d':user_details
     }
     return render(request,'expense/profile.html',data)
 
@@ -267,8 +283,19 @@ def expense_tracker(request):
     if not user_uid:
         messages.warning(request, "Please log in to view your recent expenses.")
         return redirect('login')
-    user_instance = Users.objects.get(UID=UUID(user_uid))
-    user_details = UserDetails.objects.get(user=user_instance)
+    user_instance = Users.objects.get(UID=user_uid)
+    user_details, created = UserDetails.objects.get_or_create(
+    user=user_instance,
+    defaults={
+        'full_name': '',
+        'dob': '2000-01-01',  # default valid date
+        'gender': '',
+        'state': '',
+        'city': '',
+        'occupation': '',
+        'is_filled': False
+        }
+    )
     user_salary, created = UserSalary.objects.get_or_create(
         user=user_instance,
         defaults={
@@ -325,98 +352,98 @@ def expense_tracker(request):
     }
     return render(request, 'expense/expense_tracker.html', context)
 
-def analytics(request):
-    return render(request, 'expense/analytics.html')
+# def analytics(request):
+#     return render(request, 'expense/analytics.html')
 
  
-# def analytics(request):
-#     user_uid = request.session.get('user_id')
-#     if not user_uid:
-#         messages.warning(request, "Please log in to view your recent expenses.")
-#         return redirect('login')
+def analytics(request):
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        messages.warning(request, "Please log in to view your recent expenses.")
+        return redirect('login')
 
-#     user = Users.objects.get(UID=UUID(user_uid))
+    user = UserSalary.objects.get(UID=UUID(user_uid))
+    emf= user.salary * user.emergency_percent // 100
+    # Dictionary of groups and their values
+    all_groups = {
+        'Savings': user.saving,
+        'Emergency Funds': emf,
+    }
 
-#     # Dictionary of groups and their values
-#     all_groups = {
-#         'Salary': user.savings,
-#         'EMF': user.emergency_funds,
-#     }
+    selected_group = request.POST.get('group')
+    inflation_val = float(request.POST.get('inflation', 0)) if request.method == 'POST' else 0
 
-#     selected_group = request.POST.get('group')
-#     inflation_val = float(request.POST.get('inflation', 0)) if request.method == 'POST' else 0
+    chart_data = {}
+    if selected_group:
+        base_val = all_groups.get(selected_group, 0)
+        chart_data = {
+        "1-Month Projection": {
+        "labels": ["1W", "2W", "3W",],
+        "base_values": [
+            base_val * 1,
+            base_val * 2,
+            base_val * 3
+        ],
+        "inflated_values": [
+            base_val * 1 * (1 + (inflation_val * 1 / 100)),
+            base_val * 2 * (1 + (inflation_val * 2 / 100)),
+            base_val * 3 * (1 + (inflation_val * 3 / 100))
+        ]
+    },
+        "3-Month Projection": {
+        "labels": ["Jan", "Feb", "Mar"],
+        "base_values": [
+            base_val * 1,
+            base_val * 2,
+            base_val * 3
+        ],
+        "inflated_values": [
+            base_val * 1 * (1 + (inflation_val * 1 / 100)),
+            base_val * 2 * (1 + (inflation_val * 2 / 100)),
+            base_val * 3 * (1 + (inflation_val * 3 / 100))
+        ]
+    },
+        "1-Year Projection": {
+        "labels": ["Jan-Mar","Apr-Jun","Jul-Sep","Oct-Dec",],
+        "base_values": [
+            base_val * 1,
+            base_val * 4,
+            base_val * 7,
+            base_val * 10,
+        ],
+        "inflated_values": [
+            base_val * 1 * (1 + (inflation_val * 1 / 100)),
+            base_val * 4 * (1 + (inflation_val * 4 / 100)),
+            base_val * 7 * (1 + (inflation_val * 7 / 100)),
+            base_val * 10 * (1 + (inflation_val * 10 / 100)),
+        ]
+    },
+        "5-Year Projection": {
+        "labels": ["1 Y", "2 Y", "3 Y", "4 Y", "5 Y"],
+        "base_values": [
+            base_val * 12 * 1,
+            base_val * 12 * 2,
+            base_val * 12 * 3,
+            base_val * 12 * 4,
+            base_val * 12 * 5
+        ],
+        "inflated_values": [
+            base_val * 12 * 1 * (1 + (inflation_val * 12 / 100)),
+            base_val * 12 * 2 * (1 + (inflation_val * 24 / 100)),
+            base_val * 12 * 3 * (1 + (inflation_val * 36 / 100)),
+            base_val * 12 * 4 * (1 + (inflation_val * 48 / 100)),
+            base_val * 12 * 5 * (1 + (inflation_val * 60 / 100))
+        ]
+    }
+    }
 
-#     chart_data = {}
-#     if selected_group:
-#         base_val = all_groups.get(selected_group, 0)
-#         chart_data = {
-#         "1-Month Projection": {
-#         "labels": ["1W", "2W", "3W",],
-#         "base_values": [
-#             base_val * 1,
-#             base_val * 2,
-#             base_val * 3
-#         ],
-#         "inflated_values": [
-#             base_val * 1 * (1 + (inflation_val * 1 / 100)),
-#             base_val * 2 * (1 + (inflation_val * 2 / 100)),
-#             base_val * 3 * (1 + (inflation_val * 3 / 100))
-#         ]
-#     },
-#         "3-Month Projection": {
-#         "labels": ["Jan", "Feb", "Mar"],
-#         "base_values": [
-#             base_val * 1,
-#             base_val * 2,
-#             base_val * 3
-#         ],
-#         "inflated_values": [
-#             base_val * 1 * (1 + (inflation_val * 1 / 100)),
-#             base_val * 2 * (1 + (inflation_val * 2 / 100)),
-#             base_val * 3 * (1 + (inflation_val * 3 / 100))
-#         ]
-#     },
-#         "1-Year Projection": {
-#         "labels": ["Jan-Mar","Apr-Jun","Jul-Sep","Oct-Dec",],
-#         "base_values": [
-#             base_val * 1,
-#             base_val * 4,
-#             base_val * 7,
-#             base_val * 10,
-#         ],
-#         "inflated_values": [
-#             base_val * 1 * (1 + (inflation_val * 1 / 100)),
-#             base_val * 4 * (1 + (inflation_val * 4 / 100)),
-#             base_val * 7 * (1 + (inflation_val * 7 / 100)),
-#             base_val * 10 * (1 + (inflation_val * 10 / 100)),
-#         ]
-#     },
-#         "5-Year Projection": {
-#         "labels": ["1 Y", "2 Y", "3 Y", "4 Y", "5 Y"],
-#         "base_values": [
-#             base_val * 12 * 1,
-#             base_val * 12 * 2,
-#             base_val * 12 * 3,
-#             base_val * 12 * 4,
-#             base_val * 12 * 5
-#         ],
-#         "inflated_values": [
-#             base_val * 12 * 1 * (1 + (inflation_val * 12 / 100)),
-#             base_val * 12 * 2 * (1 + (inflation_val * 24 / 100)),
-#             base_val * 12 * 3 * (1 + (inflation_val * 36 / 100)),
-#             base_val * 12 * 4 * (1 + (inflation_val * 48 / 100)),
-#             base_val * 12 * 5 * (1 + (inflation_val * 60 / 100))
-#         ]
-#     }
-#     }
-
-#     return render(request, 'expense/analytics.html', {
-#         'all_groups': all_groups,              # Dictionary of group:value
-#         'group_keys': all_groups.keys(),       # For use in dropdown
-#         'selected_group': selected_group,
-#         'inflation_val': inflation_val,
-#         'chart_data': chart_data
-#     })
+    return render(request, 'expense/analytics.html', {
+        'all_groups': all_groups,              # Dictionary of group:value
+        'group_keys': all_groups.keys(),       # For use in dropdown
+        'selected_group': selected_group,
+        'inflation_val': inflation_val,
+        'chart_data': chart_data
+    })
 
 def shopping_list_and_bills(request):
     user_uid = request.session.get('user_id')

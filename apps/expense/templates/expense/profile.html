@@ -2,14 +2,63 @@
 
 {% block title %}PROFILE{% endblock %}
 {% block page %}PROFILE{% endblock %}
-{% block body %}
+{% comment %} {% block body %}
 <div class="container">
     <div class="row justify-content-center align-content-center mt-5">
-        {% if user %}
+        {% if user_d and user %}
         <div class="col">
-            <h2 class="text-center bg-dark text-light ">{{user_d.full_name}}</h2>
-            <p class="fs-3 text-capitalize text-center bg-dark text-light ">{{user_d.gender}} - <i class="fs-4 text-center bg-dark text-light">{{user_d.dob}}</i></p>
-            <div class="text-center bg-dark text-light ">{{user.email}}</div>
+            <div class="text-center bg-dark text-light fs-1"><i class="bi bi-person"></i>{{user_d.full_name}}</div>
+            <div class="text-center bg-dark text-light fs-2"><i class="bi bi-envelope"></i> Email : {{user.email}}</div>
+            <div class="fs-3 text-capitalize text-center bg-dark text-light ">Gender : {{user_d.gender}}</div>
+            <div class="fs-3 text-capitalize text-center bg-dark text-light "><i class="bi bi-geo"></i> Address : {{user_d.city}} , {{user_d.state}}</div>
+            <div class="fs-3 text-capitalize text-center bg-dark text-light "><i class="bi bi-calendar"></i> DOB : <i class="fs-4 text-center bg-dark text-light">{{user_d.dob}}</i></div>
+            <div class="fs-3 text-capitalize text-center bg-dark text-light ">Joined Us : {{user.created_at|date:"M d , Y"}}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} {% endcomment %}
+
+
+{% block body %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        {% if user_d and user %}
+        <div class="col-md-8">
+            <div class="card shadow-lg p-4 bg-dark text-light rounded-4">
+                <h2 class="text-center mb-4"><i class="bi bi-person-circle me-2"></i>{{ user_d.full_name }}</h2>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-dark text-light fs-5">
+                        <i class="bi bi-envelope-at-fill text-info me-2"></i>Email: {{ user.email }}
+                    </li>
+                    <li class="list-group-item bg-dark text-light fs-5 text-capitalize">
+                        <i class="bi {{gender_icon}} me-2"></i>Gender: {{ user_d.gender|default:"Not Set" }}
+                    </li>
+                    <li class="list-group-item bg-dark text-light fs-5 text-capitalize">
+                        <i class="bi bi-briefcase-fill text-warning me-2"></i>Occupation: {{ user_d.occupation|default:"Not Set" }}
+                    </li>
+                    <li class="list-group-item bg-dark text-light fs-5 text-capitalize">
+                        <i class="bi bi-geo-alt-fill text-danger me-2"></i>Address: {{ user_d.city|default:"-" }}, {{ user_d.state|default:"-" }}
+                    </li>
+                    <li class="list-group-item bg-dark text-light fs-5">
+                        <i class="bi bi-calendar-heart text-success me-2"></i>Date of Birth: {{ user_d.dob|date:"M d, Y" }}
+                    </li>
+                    <li class="list-group-item bg-dark text-light fs-5">
+                        <i class="bi bi-person-check-fill me-2"></i>Joined Us: {{ user.created_at|date:"M d, Y" }}
+                    </li>
+                </ul>
+
+                <div class="mt-4 text-center">
+                    <a href="{% url 'update_profile' %}" class="btn btn-outline-light rounded-pill">
+                        <i class="bi bi-pencil-square me-1"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6">
+            <div class="alert alert-warning text-center fs-5 shadow">User profile data not found.</div>
         </div>
         {% endif %}
     </div>

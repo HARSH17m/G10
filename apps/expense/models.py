@@ -1,6 +1,7 @@
 from django.db import models
 import uuid
 
+
 # Base abstract class
 class BaseClass(models.Model):
     UID = models.UUIDField(default=uuid.uuid4, primary_key=True, null=False, blank=False)
@@ -25,12 +26,12 @@ class Users(BaseClass):
 
 class UserDetails(BaseClass):
     user = models.ForeignKey(Users, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=100)
-    dob = models.DateField()
-    gender = models.CharField(max_length=10)
-    state = models.CharField(max_length=30)
-    city = models.CharField(max_length=100)
-    occupation = models.CharField(max_length=20)
+    full_name = models.CharField(default='',max_length=100)
+    dob = models.DateField(default='')
+    gender = models.CharField(default='',max_length=10)
+    state = models.CharField(default='',max_length=30)
+    city = models.CharField(default='',max_length=100)
+    occupation = models.CharField(default='',max_length=20)
     is_filled = models.BooleanField(default=False)
 
     def __str__(self):
@@ -84,7 +85,7 @@ class UserSalary(BaseClass):
     def calculate_remaining(self):
         used = (
             self.saving +
-            self.get_emergency_amount() +
+            self.get_emergency_amount() +   
             self.get_personal_amount() +
             self.get_total_fixed_expense()
         )
