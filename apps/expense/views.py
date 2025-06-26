@@ -237,6 +237,31 @@ def profile(request):
     }
     return render(request,'expense/profile.html',data)
 
+def update_profile(request):
+    user_uid = request.session.get('user_uid')
+    if not user_uid:
+        messages.error(request, "Session not found please login")
+        return redirect('login')
+    user_details = UserDetails.objects.get(user_id=UUID(user_uid))
+    if not user_details:
+        messages.error(request, "Profile details not found.")
+        return redirect('profile')
+
+    if request.method == 'POST':
+        user_details.full_name = request.POST.get('full_name')
+        user_details.dob = request.POST.get('dob')
+        user_details.gender = request.POST.get('gender')
+        user_details.state = request.POST.get('state')
+        user_details.city = request.POST.get('city')
+        user_details.occupation = request.POST.get('occupation')
+        user_details.save()
+        messages.success(request, "Profile updated successfully.")
+        return redirect('profile')
+
+    return render(request, 'expense/update_profile.html', {
+        'user_details': user_details
+    })
+
 def expense_tracker(request):
     user_uid = request.session.get('user_id')
     if not user_uid:

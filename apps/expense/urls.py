@@ -8,6 +8,7 @@ urlpatterns = [
     path('details/<uuid:uid>/',details,name="details"),
     path('index/',index,name="index"),
     path('profile/',profile,name="profile"),
+    path('profile/update/',update_profile, name='update_profile'),
     path('expense-tracker/',expense_tracker,name="expense_tracker"),
     path('analytics/',analytics,name="analytics"),
     path('shopping-list-and-bills/',shopping_list_and_bills,name="shopping_list_and_bills"),

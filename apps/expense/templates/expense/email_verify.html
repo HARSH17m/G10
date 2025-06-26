@@ -3,9 +3,11 @@
 {% block body %}
     <div class="container">
         <div class="row">
-            <div class="col">
-                <fieldset>
-                    <legend>VERIFY</legend>
+            <div class="col-sm-3">
+            </div>
+            <div class="col-sm-6">
+                <fieldset class="bg-light card shadow-lg shadow-info">
+                    <strong class="text-center pt-3 pb-0 card-text fs-3">Email Verification</strong>
                     <form action="{% url 'email_verify' %}" method="post">
                         {% csrf_token %}
                         <input type="hidden" name="email" class="form-control" value={{email}}>
@@ -14,6 +16,8 @@
                         <input type="submit" value="Verify">
                     </form>
                 </fieldset>
+            </div>
+            <div class="col-sm-3">
             </div>
         </div>
     </div>

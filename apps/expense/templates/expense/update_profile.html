@@ -1,0 +1,56 @@
+{% extends 'expense/base.html' %}
+{% block title %}Update Profile{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+  <div class="card shadow-lg mx-auto" style="max-width: 700px;">
+    <div class="card-header bg-dark text-white">
+      <h4 class="mb-0">Update Profile</h4>
+    </div>
+    <div class="card-body bg-light">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="full_name" class="form-label">Full Name</label>
+          <input type="text" name="full_name" class="form-control" value="{{ user_details.full_name }}" required>
+        </div>
+        <div class="mb-3">
+          <label for="dob" class="form-label">Date of Birth</label>
+          <input type="date" name="dob" class="form-control" value="{{ user_details.dob|date:'Y-m-d' }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Gender</label><br>
+          <div class="form-check form-check-inline">
+            <input type="radio" name="gender" value="male" {% if user_details.gender == 'male' %}checked{% endif %} class="form-check-input">
+            <label class="form-check-label">Male</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input type="radio" name="gender" value="female" {% if user_details.gender == 'female' %}checked{% endif %} class="form-check-input">
+            <label class="form-check-label">Female</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input type="radio" name="gender" value="other" {% if user_details.gender == 'other' %}checked{% endif %} class="form-check-input">
+            <label class="form-check-label">Other</label>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="state" class="form-label">State</label>
+          <input type="text" name="state" class="form-control" value="{{ user_details.state }}" required>
+        </div>
+        <div class="mb-3">
+          <label for="city" class="form-label">City</label>
+          <input type="text" name="city" class="form-control" value="{{ user_details.city }}" required>
+        </div>
+        <div class="mb-3">
+          <label for="occupation" class="form-label">Occupation</label>
+          <input type="text" name="occupation" class="form-control" value="{{ user_details.occupation }}" required>
+        </div>
+        <div class="text-end">
+          <button type="submit" class="btn btn-success">Save Changes</button>
+          <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
