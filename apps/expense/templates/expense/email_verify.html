@@ -7,13 +7,18 @@
             </div>
             <div class="col-sm-6">
                 <fieldset class="bg-light card shadow-lg shadow-info">
-                    <strong class="text-center pt-3 pb-0 card-text fs-3">Email Verification</strong>
+                    <h3 class="text-center pt-3 pb-0 card-text fs-3">Email Verification | EXPENSEO</h3>
                     <form action="{% url 'email_verify' %}" method="post">
                         {% csrf_token %}
                         <input type="hidden" name="email" class="form-control" value={{email}}>
-                        <label for="">OTP</label>
-                        <input type="number" name="otp" class="form-control" placeholder="_ _ _ _ _ _">   
-                        <input type="submit" value="Verify">
+                        <div class="input-group mb-1 px-4">
+                            <label for="email" class="form-label col-sm-12 fs-4">OTP</label>
+                            <span class="col-sm-1 input-group-text  border border-secondary border-2 border-end-0 rounded-start"><i class="bi bi-patch-check"></i></span>
+                            <input type="number" name="otp" min="111111" max="999999" class="form-control border border-secondary border-2" placeholder="_ _ _ _ _ _" autofocus>
+                        </div>
+                        <div class="d-grid m-4">
+                            <input type="submit" value="Verify" class="btn btn-dark">
+                        </div>
                     </form>
                 </fieldset>
             </div>

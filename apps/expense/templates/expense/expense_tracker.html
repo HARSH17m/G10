@@ -24,10 +24,27 @@
           </div>
 
           <div class="mb-3">
-            <label for="fixed_expenses" class="form-label">Fixed Expenses (JSON)</label>
-            <textarea class="form-control" id="fixed_expenses" name="fixed_expenses" rows="3"
-                      placeholder='{"milk": 800, "rent": 5000}'>{{ user_salary.fixed_expenses }}</textarea>
-            <small class="text-muted">Use JSON format like {"milk": 500, "rent": 6000}</small>
+            <label class="form-label">Fixed Expenses</label>
+            <table class="table table-bordered" id="fixedExpenseTable">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Amount (₹)</th>
+                  <th>Remove</th>
+                </tr>
+              </thead>
+              <tbody id="expenseRows">
+                {% for key, value in user_salary.fixed_expenses.items %}
+                <tr>
+                  <td><input type="text" name="item" class="form-control" value="{{ key }}"></td>
+                  <td><input type="number" name="amount" class="form-control" value="{{ value }}"></td>
+                  <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">+ Add Row</button>
+            <input type="hidden" name="fixed_expenses" id="fixedExpensesInput">
           </div>
 
           <div class="mb-3">
@@ -88,7 +105,7 @@
         </div>
       </form>
     </div>
-
+    {% if allow_edit %}
     <script>
       var myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {
         backdrop: 'static',
@@ -96,6 +113,39 @@
       });
       window.addEventListener('load', function () {
         myModal.show();
+      });
+    </script>
+    {% endif %}
+    <script>
+      function addRow() {
+        const row = `
+          <tr>
+            <td><input type="text" name="item" class="form-control" required></td>
+            <td><input type="number" name="amount" class="form-control" required></td>
+            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
+          </tr>`;
+        document.getElementById('expenseRows').insertAdjacentHTML('beforeend', row);
+      }
+
+      function removeRow(btn) {
+        btn.closest('tr').remove();
+      }
+
+      // On form submit, convert to JSON
+      document.querySelector("form").addEventListener("submit", function (e) {
+        const items = document.querySelectorAll("input[name='item']");
+        const amounts = document.querySelectorAll("input[name='amount']");
+        let data = {};
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i].value.trim();
+          const amount = parseFloat(amounts[i].value);
+          if (item && !isNaN(amount)) {
+            data[item] = amount;
+          }
+        }
+
+        document.getElementById("fixedExpensesInput").value = JSON.stringify(data);
       });
     </script>
 

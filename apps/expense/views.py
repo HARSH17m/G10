@@ -6,9 +6,8 @@ from django.db.models import Min, Max
 from django.shortcuts import render,redirect
 from django.utils.timezone import localtime,now,timedelta
 
-from functools import wraps
-from uuid import UUID
-from decimal import Decimal
+from uuid import UUID # used to call object using str to uuid conversion
+from decimal import Decimal 
 from datetime import datetime
 
 from .models import Users,UserDetails,UserSalary,Transaction,LogoutData
@@ -16,15 +15,6 @@ from .helpers import *
 
 import random
 import datetime
-
-# Create your views here.
-# def login_required(view_func):
-#     @wraps(view_func)
-#     def wrapper(request, *args, **kwargs):
-#         if 'user_id' not in request.session:
-#             return redirect('login')  # redirect to login page
-#         return view_func(request, *args, **kwargs)
-    # return wrapper 
 
 def login(request):#VIVEK
     if request.method == 'POST':
@@ -49,7 +39,7 @@ def login(request):#VIVEK
         request.session['user_id'] = str(get_user.UID)
         messages.success(request, "Login successful!")
         return redirect('index')
-        #
+    
     return render(request,'expense/login.html')
 
 def signup(request):#ADAM,
@@ -140,9 +130,17 @@ def details(request, uid):
             is_filled=True,
         )
         messages.success(request, "Details submitted successfully. You can now log in.")
-        return redirect('login')
-
-    return render(request, 'expense/details.html', {'user': user})
+        return render(request,'expense/login.html',{'email':user.email})
+    INDIAN_STATES = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+    "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+    "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
+    "Uttar Pradesh", "Uttarakhand", "West Bengal",
+    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"]
+    return render(request, 'expense/details.html', {'user': user,'states':INDIAN_STATES})
 
 def forgot_password(request): # HARSH
     if request.method == 'POST':
@@ -159,7 +157,7 @@ def forgot_password(request): # HARSH
             user.forgot_password_otp = forgot_password_otp_
             user.save()
 
-            request.session['reset_email'] = email_
+            request.session['reset_email'] = str(email_)
 
             subject = "OTP for Resetting Password | Expenseo"
             message = f"OTP for Verification: {forgot_password_otp_}"
@@ -217,10 +215,9 @@ def reset_password(request): # HARSH
         user.password=make_password(password_)
         user.save()
         messages.success(request, "Password updated successfully. Please log in.")
-        return redirect('login')
+        return render(request,'expense/login.html',{'email':email_})
     return render(request,'expense/reset_password.html')
 
-# @login_required
 def index(request):
     return render(request,'expense/index.html')
 
@@ -254,11 +251,13 @@ def profile(request):
     return render(request,'expense/profile.html',data)
 
 def update_profile(request):
-    user_uid = request.session.get('user_uid')
+    user_uid = request.session.get('user_id')
     if not user_uid:
         messages.error(request, "Session not found please login")
         return redirect('login')
+    
     user_details = UserDetails.objects.get(user_id=UUID(user_uid))
+    
     if not user_details:
         messages.error(request, "Profile details not found.")
         return redirect('profile')
@@ -273,9 +272,18 @@ def update_profile(request):
         user_details.save()
         messages.success(request, "Profile updated successfully.")
         return redirect('profile')
-
+    INDIAN_STATES = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+    "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+    "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
+    "Uttar Pradesh", "Uttarakhand", "West Bengal",
+    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"]
     return render(request, 'expense/update_profile.html', {
-        'user_details': user_details
+        'user_details': user_details,
+        'states':INDIAN_STATES,
     })
 
 def expense_tracker(request):
@@ -352,17 +360,13 @@ def expense_tracker(request):
     }
     return render(request, 'expense/expense_tracker.html', context)
 
-# def analytics(request):
-#     return render(request, 'expense/analytics.html')
-
- 
 def analytics(request):
     user_uid = request.session.get('user_id')
     if not user_uid:
         messages.warning(request, "Please log in to view your recent expenses.")
         return redirect('login')
 
-    user = UserSalary.objects.get(UID=UUID(user_uid))
+    user = UserSalary.objects.get(user=UUID(user_uid))
     emf= user.salary * user.emergency_percent // 100
     # Dictionary of groups and their values
     all_groups = {
@@ -451,15 +455,27 @@ def shopping_list_and_bills(request):
         messages.warning(request, "Please log in to view your recent expenses.")
         return redirect('login')
     # if request.user.is_authenticated:
-    #     unshopped_items = unshopped_items.objects.filter(user=request.user)
     # else:
     #     unshopped_items = []
     
-    unshopped_key = f'unshopped_items_{user_uid}'
-    unshopped_items = request.session.get(unshopped_key, [])
+    unshopped_items = request.session.get(f'unshopped_items_{user_uid}')
+
+    if not unshopped_items:
+        logout_data = LogoutData.objects.filter(user=UUID(user_uid), was_shopped=False)
+        unshopped_items = [
+            {
+                'item': item.item_name,
+                'expected': str(item.expected_amount),
+                'paid': str(item.paid_amount)
+            } for item in logout_data
+        ]
+        logout_data.delete()
+
+    request.session[f'unshopped_items_{user_uid}'] = unshopped_items
+
     return render(request,'expense/shopping_list_and_bills.html',{"unshopped_items":unshopped_items})
 
-def save_transactions(request):
+def save_transactions(request,from_logout=False):
     if request.method == 'POST':
         uid_str = request.session.get('user_id')
         if not uid_str:
@@ -494,43 +510,38 @@ def save_transactions(request):
                 )
                 transaction_count += 1
             else:
-                unshopped_items.append({
+                unshopped_item = {
                     'item': item,
-                    'expected': expected,
-                    'paid': paid,
-                })
+                    'expected': str(expected),
+                    'paid': str(paid)
+                }
+                unshopped_items.append(unshopped_item)
+
+                # save to LogoutData DB
+                LogoutData.objects.create(
+                    user=user,
+                    item_name=item,
+                    expected_amount=expected,
+                    paid_amount=paid,
+                    was_shopped=False
+                )
 
             index += 1
 
         # Optionally: Store unshopped items in session to prefill later
         request.session[f'unshopped_items_{uid_str}'] = unshopped_items
-
-        if transaction_count > 0:
-            messages.success(request, f"{transaction_count} item(s) saved successfully.")
+        
+        if from_logout:
+            return True
         else:
-            messages.info(request, "No items were marked as shopped.")
+            if transaction_count > 0:
+                messages.success(request, f"{transaction_count} item(s) saved successfully.")
+            else:
+                messages.info(request, "No items were marked as shopped.")
 
-        return redirect('shopping_list_and_bills')
+            return redirect('shopping_list_and_bills')
 
     return redirect('shopping_list_and_bills')
-
-# def recent_expenses(request):#HARSH
-#     user_uid = request.session.get('user_id')
-
-#     if not user_uid:
-#         messages.warning(request, "Please log in to view your recent expenses.")
-#         return redirect('login')  # or your preferred login route
-
-#     # Fetch user's transactions, newest first
-#     expenses = Transaction.objects.filter(user_id=user_uid).order_by('-transaction_time')
-
-#     # Optional: Format date if needed in view instead of template
-#     for e in expenses:
-#         e.formatted_date = localtime(e.transaction_time).strftime('%d-%b-%Y')
-
-#     return render(request, 'expense/recent_expenses.html', {
-#         'expenses': expenses
-#     })
 
 def recent_expenses(request):
     user_uid = request.session.get('user_id')
@@ -563,7 +574,6 @@ def recent_expenses(request):
     # ----------------------------
     expenses = Transaction.objects.filter(user_id=user_uid).order_by('-transaction_time')
 
-    # Filters
     group_filter = request.GET.get('group')
     date_filter = request.GET.get('month_year')
     max_price = request.GET.get('price_max')
@@ -572,29 +582,23 @@ def recent_expenses(request):
         expenses = expenses.filter(group_name=group_filter)
     
     if date_filter:
-        try:
-            date_obj = datetime.strptime(date_filter, '%Y-%m')
-            expenses = expenses.filter(
-                transaction_time__year=date_obj.year,
-                transaction_time__month=date_obj.month
-            )
-        except:
-            pass
+        date_obj = datetime.strptime(date_filter, '%Y-%m')
+        expenses = expenses.filter(
+            transaction_time__year=date_obj.year,
+            transaction_time__month=date_obj.month
+        )
 
     if max_price:
-        try:
-            expenses = expenses.filter(paid_amount__lte=Decimal(max_price))
-        except:
-            pass
+        expenses = expenses.filter(paid_amount__lte=Decimal(max_price))
 
     # For sorting UI options
     all_groups = Transaction.objects.filter(user_id=user_uid).values_list('group_name', flat=True).distinct()
-    all_groups = [g for g in all_groups if g]  # remove nulls
+    all_groups = [g for g in all_groups if g]
 
     month_years = Transaction.objects.filter(user_id=user_uid).dates('transaction_time', 'month', order='DESC')
     price_range = Transaction.objects.filter(user_id=user_uid).aggregate(min_price=Min('paid_amount'), max_price=Max('paid_amount'))
 
-    # Set defaults if null
+    # Set defaults for display
     for e in expenses:
         if not e.group_name:
             e.group_name = "Ungrouped"
@@ -607,7 +611,7 @@ def recent_expenses(request):
         'groups': all_groups,
         'month_years': month_years,
         'price_range': price_range
-})
+    })
 
 def dashboard_view(request):
     if not request.session.get('user_email'):
@@ -655,42 +659,10 @@ def dashboard_view(request):
 
 def logout(request):
     if 'user_id' in request.session:
-        request.session.flush()
-        messages.success(request, "Logged out successfully.")
-    else:
-        messages.info(request, "You were not logged in.")
-    return redirect('login')
-
-# def logout(request):
-    user_uid = request.session.get('user_id')
-    if not user_uid:
-        return redirect('login')
-
-    uid = UUID(user_uid)
-
-    unshopped_key = f'unshopped_items_{user_uid}'
-    unshopped_items = request.session.get(unshopped_key, [])
-
-    # Save unshopped items
-    for item in unshopped_items:
-        LogoutData.objects.create(
-            user_id=uid,
-            item_name=item['item'],
-            expected_amount=item['expected'] or 0,
-            paid_amount=item['paid'] or 0,
-            was_shopped=False
-        )
-
-    shopped_items = request.session.get(f'shopped_items_{user_uid}', [])
-    for item in shopped_items:
-        LogoutData.objects.create(
-            user_id=uid,
-            item_name=item['item'],
-            expected_amount=item['expected'] or 0,
-            paid_amount=item['paid'] or 0,
-            was_shopped=True
-        )
-
-    request.session.flush()
-    messages.success(request, "Session ended. Data stored safely.")
+        if save_transactions(request, from_logout=True):
+            request.session.flush()
+            messages.success(request, "Transactions saved. Logged out successfully.")
+        else:
+            request.session.flush()
+            messages.warning(request, "Logged out, but some transactions may not have been saved.")
     return redirect('login')

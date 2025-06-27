@@ -1,5 +1,6 @@
 {% extends 'expense/base.html' %}
-{% block title %}Update Profile{% endblock %}
+{% block title %}UPDATE PROFILE{% endblock %}
+{% block page %}UPDATE PROFILE{% endblock %}
 
 {% block body %}
 <div class="container mt-5">
@@ -7,19 +8,19 @@
     <div class="card-header bg-dark text-white">
       <h4 class="mb-0">Update Profile</h4>
     </div>
-    <div class="card-body bg-light">
+    <div class="card-body bg-dark text-light">
       <form method="POST">
         {% csrf_token %}
         <div class="mb-3">
-          <label for="full_name" class="form-label">Full Name</label>
-          <input type="text" name="full_name" class="form-control" value="{{ user_details.full_name }}" required>
+          <label for="full_name" class="form-label text-light">Full Name</label>
+          <input type="text" name="full_name" class="form-control bg-dark text-light" value="{{ user_details.full_name }}" required>
+        </div>
+        <div class="mb-3 text-light">
+          <label for="dob" class="form-label text-light">Date of Birth</label>
+          <input type="date" name="dob" class="form-control bg-dark text-light" value="{{ user_details.dob|date:'Y-m-d' }}" style="color-scheme: light;" required>
         </div>
         <div class="mb-3">
-          <label for="dob" class="form-label">Date of Birth</label>
-          <input type="date" name="dob" class="form-control" value="{{ user_details.dob|date:'Y-m-d' }}" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Gender</label><br>
+          <label class="form-label text-light">Gender</label><br>
           <div class="form-check form-check-inline">
             <input type="radio" name="gender" value="male" {% if user_details.gender == 'male' %}checked{% endif %} class="form-check-input">
             <label class="form-check-label">Male</label>
@@ -34,16 +35,24 @@
           </div>
         </div>
         <div class="mb-3">
-          <label for="state" class="form-label">State</label>
-          <input type="text" name="state" class="form-control" value="{{ user_details.state }}" required>
+          <label for="state" class="form-label text-light">State</label>
+          <select name="state" class="form-select bg-dark text-light" required>
+            <option value="">-- Select State --</option>
+            {% for state in states %}
+              <option value="{{ state }}" {% if user_details.state == state %}selected{% endif %}>{{ state }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div class="mb-3">
-          <label for="city" class="form-label">City</label>
-          <input type="text" name="city" class="form-control" value="{{ user_details.city }}" required>
+          <label for="city" class="form-label text-light">City</label>
+          <input type="text" name="city" class="form-control bg-dark text-light" value="{{ user_details.city }}" required>
         </div>
         <div class="mb-3">
-          <label for="occupation" class="form-label">Occupation</label>
-          <input type="text" name="occupation" class="form-control" value="{{ user_details.occupation }}" required>
+          <label for="occupation" class="form-label text-light">Occupation</label>
+          <select name="occupation" class="form-select bg-dark text-light" required>
+            <option value="employed" {% if user_details.occupation == 'employed' %}selected{% endif %}>Employed</option>
+            <option value="unemployed" {% if user_details.occupation == 'unemployed' %}selected{% endif %}>Unemployed</option>
+        </select>
         </div>
         <div class="text-end">
           <button type="submit" class="btn btn-success">Save Changes</button>
