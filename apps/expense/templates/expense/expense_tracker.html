@@ -1,31 +1,33 @@
 {% extends 'expense/base.html' %}
+{% block title %}Expense Tracker{% endblock %}
+{% block page %}Expense Tracker{% endblock %}
 
-{% block title %}EXPENSE TRACKER{% endblock %}
-{% block styles %}{% endblock %}
-{% block page %}EXPENSE TRACKER{% endblock %}
 {% block body %}
-
-{% if is_employed %}
-  {% if show_popup %}
-    <div class="container mt-4">
-      <form method="post">
+<div class="container py-5">
+  {% if is_employed %}
+    {% if show_popup %}
+      <form method="POST">
         {% csrf_token %}
-        <div class="card p-3 shadow-sm">
-          <h5 class="mb-3">Monthly Salary Input</h5>
+        <div class="card bg-secondary text-light shadow rounded-4 p-4">
+          <h4 class="mb-4">Monthly Salary & Allocation</h4>
 
-          <div class="mb-3">
-            <label for="salary" class="form-label">Salary (₹)</label>
-            <input type="number" class="form-control" id="salary" name="salary"
-                   value="{{ user_salary.salary|default:0 }}"
-                   {% if not allow_edit %}readonly{% endif %} required>
-            {% if not allow_edit and not is_first_time %}
-              <small class="text-muted">Editable again on reset day.</small>
-            {% endif %}
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="salary" class="form-label">Salary (₹)</label>
+              <input type="number" name="salary" id="salary" class="form-control bg-dark text-light" value="{{ user_salary.salary|default:0 }}" {% if not allow_edit %}readonly{% endif %} required>
+              {% if not allow_edit and not is_first_time %}
+                <small class="text-muted">You can edit again on reset day.</small>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="saving" class="form-label">Saving (₹)</label>
+              <input type="number" name="saving" id="saving" class="form-control bg-dark text-light" value="{{ user_salary.saving|default:0 }}" required>
+            </div>
           </div>
 
           <div class="mb-3">
             <label class="form-label">Fixed Expenses</label>
-            <table class="table table-bordered" id="fixedExpenseTable">
+            <table class="table table-dark table-bordered">
               <thead>
                 <tr>
                   <th>Item</th>
@@ -36,133 +38,117 @@
               <tbody id="expenseRows">
                 {% for key, value in user_salary.fixed_expenses.items %}
                 <tr>
-                  <td><input type="text" name="item" class="form-control" value="{{ key }}"></td>
-                  <td><input type="number" name="amount" class="form-control" value="{{ value }}"></td>
+                  <td><input type="text" name="item" class="form-control bg-dark text-light" value="{{ key }}"></td>
+                  <td><input type="number" name="amount" class="form-control bg-dark text-light" value="{{ value }}"></td>
                   <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
-            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">+ Add Row</button>
+            <button type="button" class="btn btn-outline-light btn-sm" onclick="addRow()">+ Add Row</button>
             <input type="hidden" name="fixed_expenses" id="fixedExpensesInput">
           </div>
 
-          <div class="mb-3">
-            <label for="saving" class="form-label">Saving (₹)</label>
-            <input type="number" class="form-control" name="saving" min="0"
-                   value="{{ user_salary.saving|default:0 }}" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="emergency_percent" class="form-label">Emergency Fund (%)</label>
-            <input type="range" class="form-range" min="5" max="50"
-                   name="emergency_percent" value="{{ user_salary.emergency_percent }}"
-                   oninput="document.getElementById('emg_val').innerText = this.value + '%'">
-            <p class="text-muted">Selected: <span id="emg_val">{{ user_salary.emergency_percent }}%</span></p>
-          </div>
-
-          <div class="mb-3">
-            <label for="personal_percent" class="form-label">Personal Expense (%)</label>
-            <input type="range" class="form-range" min="5" max="70"
-                   name="personal_percent" value="{{ user_salary.personal_percent }}"
-                   oninput="document.getElementById('per_val').innerText = this.value + '%'">
-            <p class="text-muted">Selected: <span id="per_val">{{ user_salary.personal_percent }}%</span></p>
+          <div class="row mb-3">
+            <div class="col">
+              <label class="form-label">Emergency Fund (%)</label>
+              <input type="range" name="emergency_percent" class="form-range" min="5" max="50" value="{{ user_salary.emergency_percent }}" oninput="document.getElementById('emg_val').innerText = this.value + '%'">
+              <span id="emg_val">{{ user_salary.emergency_percent }}%</span>
+            </div>
+            <div class="col">
+              <label class="form-label">Personal Expense (%)</label>
+              <input type="range" name="personal_percent" class="form-range" min="5" max="70" value="{{ user_salary.personal_percent }}" oninput="document.getElementById('per_val').innerText = this.value + '%'">
+              <span id="per_val">{{ user_salary.personal_percent }}%</span>
+            </div>
           </div>
 
           <div class="mb-3">
             <label class="form-label">Select Reset Day (1–28)</label>
             <div class="d-flex flex-wrap gap-2">
               {% for day in range_1_28 %}
-                <input type="radio" class="btn-check" name="reset_day" id="day{{ day }}" value="{{ day }}"
-                       {% if user_salary.reset_day == day %}checked{% endif %} required>
-                <label class="btn btn-outline-primary btn-sm m-1" for="day{{ day }}">{{ day }}</label>
+              <input type="radio" class="btn-check" name="reset_day" id="day{{ day }}" value="{{ day }}" {% if user_salary.reset_day == day %}checked{% endif %} required>
+              <label class="btn btn-outline-light btn-sm" for="day{{ day }}">{{ day }}</label>
               {% endfor %}
             </div>
           </div>
 
-          <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmModal"
-                  {% if not allow_edit %}disabled{% endif %}>
-            Save Salary
-          </button>
-        </div>
+          <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-success" {% if not allow_edit %}disabled{% endif %}>
+              <i class="bi bi-floppy"></i> Save Salary
+            </button>
 
-        <!-- Confirm Modal -->
-        <div class="modal fade" id="confirmModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow">
-              <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Confirm Submission</h5>
-              </div>
-              <div class="modal-body">
-                <p>Are you sure you want to save the salary and reset day?</p>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Go Back</button>
-                <button type="submit" class="btn btn-success">Confirm & Submit</button>
-              </div>
-            </div>
+            <button type="button" class="btn btn-warning" onclick="location.reload();" {% if not allow_edit %}disabled{% endif %}>
+              <i class="bi bi-arrow-clockwise"></i> Reset Inputs
+            </button>
           </div>
         </div>
       </form>
-    </div>
-    {% if allow_edit %}
-    <script>
-      var myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {
-        backdrop: 'static',
-        keyboard: false
-      });
-      window.addEventListener('load', function () {
-        myModal.show();
-      });
-    </script>
-    {% endif %}
-    <script>
-      function addRow() {
-        const row = `
-          <tr>
-            <td><input type="text" name="item" class="form-control" required></td>
-            <td><input type="number" name="amount" class="form-control" required></td>
-            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
-          </tr>`;
-        document.getElementById('expenseRows').insertAdjacentHTML('beforeend', row);
-      }
 
-      function removeRow(btn) {
-        btn.closest('tr').remove();
-      }
-
-      // On form submit, convert to JSON
-      document.querySelector("form").addEventListener("submit", function (e) {
-        const items = document.querySelectorAll("input[name='item']");
-        const amounts = document.querySelectorAll("input[name='amount']");
-        let data = {};
-
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i].value.trim();
-          const amount = parseFloat(amounts[i].value);
-          if (item && !isNaN(amount)) {
-            data[item] = amount;
-          }
-        }
-
-        document.getElementById("fixedExpensesInput").value = JSON.stringify(data);
-      });
-    </script>
-
-  {% else %}
-    <!-- ✅ Regular Tracker Display or Editable Panel -->
-    <div class="container mt-4">
-      <div class="card p-3 shadow-sm">
-        <h5 class="mb-3">Salary Summary</h5>
-        <p><strong>Salary:</strong> ₹{{ user_salary.salary }}</p>
-        <p><strong>Fixed Expenses:</strong> ₹{{ user_salary.get_total_fixed_expense }}</p>
-        <p><strong>Saving:</strong> ₹{{ user_salary.saving }}</p>
-        <p><strong>Emergency:</strong> {{ user_salary.emergency_percent }}% (₹{{ user_salary.get_emergency_amount }})</p>
-        <p><strong>Personal:</strong> {{ user_salary.personal_percent }}% (₹{{ user_salary.get_personal_amount }})</p>
-        <p><strong>Remaining Salary:</strong> ₹{{ user_salary.remaining_salary }}</p>
-        <p><strong>Reset Day:</strong> {{ user_salary.reset_day }}</p>
+    {% else %}
+      <!-- Summary Card -->
+      <div class="card bg-secondary text-light shadow p-4 rounded-4">
+        <div class="row align-items-center mb-3">
+          <div class="col-md-8">
+            <h4 class="mb-0">Salary Summary</h4>
+          </div>
+          <div class="col-md-4 text-end">
+            <button type="button" class="btn btn-outline-light"
+                    onclick="location.reload();"
+                    {% if not allow_edit %}disabled data-bs-toggle="tooltip" title="Reset is only allowed on Reset Day"{% endif %}>
+              <i class="bi bi-arrow-clockwise"></i> Reset Inputs
+            </button>
+          </div>
+        </div>
+        
+        <ul class="list-group list-group-flush bg-secondary">
+          <li class="list-group-item bg-secondary text-light"><strong>Salary:</strong> ₹{{ user_salary.salary }}</li>
+          <li class="list-group-item bg-secondary text-light"><strong>Fixed Expenses:</strong> ₹{{ user_salary.get_total_fixed_expense }}</li>
+          <li class="list-group-item bg-secondary text-light"><strong>Saving:</strong> ₹{{ user_salary.saving }}</li>
+          <li class="list-group-item bg-secondary text-light"><strong>Emergency Fund:</strong> {{ user_salary.emergency_percent }}% (₹{{ user_salary.get_emergency_amount }})</li>
+          <li class="list-group-item bg-secondary text-light"><strong>Personal Expense:</strong> {{ user_salary.personal_percent }}% (₹{{ user_salary.get_personal_amount }})</li>
+          <li class="list-group-item bg-secondary text-light"><strong>Remaining Salary:</strong> ₹{{ user_salary.remaining_salary }}</li>
+          <li class="list-group-item bg-secondary text-light"><strong>Reset Day:</strong> {{ user_salary.reset_day }}</li>
+        </ul>
       </div>
-    </div>
+    {% endif %}
+  {% else %}
+    <div class="alert alert-danger mt-4">You must be marked as "Employed" in your profile to use the salary features.</div>
   {% endif %}
-{% endif %}
+</div>
+
+<script>
+  function addRow() {
+    const row = `
+      <tr>
+        <td><input type="text" name="item" class="form-control bg-dark text-light" required></td>
+        <td><input type="number" name="amount" class="form-control bg-dark text-light" required></td>
+        <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
+      </tr>`;
+    document.getElementById('expenseRows').insertAdjacentHTML('beforeend', row);
+  }
+
+  function removeRow(btn) {
+    btn.closest('tr').remove();
+  }
+
+  document.querySelector("form")?.addEventListener("submit", function (e) {
+    const items = document.querySelectorAll("input[name='item']");
+    const amounts = document.querySelectorAll("input[name='amount']");
+    let data = {};
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i].value.trim();
+      const amount = parseFloat(amounts[i].value);
+      if (item && !isNaN(amount)) {
+        data[item] = amount;
+      }
+    }
+
+    document.getElementById("fixedExpensesInput").value = JSON.stringify(data);
+  });
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+</script>
 {% endblock %}

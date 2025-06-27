@@ -1,0 +1,29 @@
+{% extends 'expense/base.html' %}
+{% block title %}CONTACT US{% endblock %}
+{% block page %}CONTACT US{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card bg-dark text-light p-4 shadow-lg rounded-4" style="width: 100%; max-width: 500px;">
+        <h4 class="text-center mb-3">Send us a Message</h4>
+        <form method="POST" action="{% url 'contact_us' %}">
+            {% csrf_token %}
+            
+            <!-- Hidden name and email fields -->
+            <input type="hidden" name="name" value="{{ user_d.full_name }}">
+            <input type="hidden" name="email" value="{{ user.email }}">
+
+            <!-- Message textarea -->
+            <div class="form-floating mb-3">
+                <textarea class="form-control bg-light text-dark" placeholder="Your message" id="message" name="message" style="height: 200px;" required></textarea>
+                <label for="message" class="text-dark">Your Message</label>
+            </div>
+
+            <!-- Submit button -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-outline-light">Send</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -352,102 +352,13 @@ def expense_tracker(request):
     context = {
         'user':user_instance,
         'userd':user_details,
-        'is_employed': user_details.occupation == 'Employed',
+        'is_employed': user_details.occupation == 'employed',
         'show_popup': show_popup,
         'user_salary': user_salary,
         'range_1_28': range(1, 29),
         'allow_edit': allow_edit,
     }
     return render(request, 'expense/expense_tracker.html', context)
-
-def analytics(request):
-    user_uid = request.session.get('user_id')
-    if not user_uid:
-        messages.warning(request, "Please log in to view your recent expenses.")
-        return redirect('login')
-
-    user = UserSalary.objects.get(user=UUID(user_uid))
-    emf= user.salary * user.emergency_percent // 100
-    # Dictionary of groups and their values
-    all_groups = {
-        'Savings': user.saving,
-        'Emergency Funds': emf,
-    }
-
-    selected_group = request.POST.get('group')
-    inflation_val = float(request.POST.get('inflation', 0)) if request.method == 'POST' else 0
-
-    chart_data = {}
-    if selected_group:
-        base_val = all_groups.get(selected_group, 0)
-        chart_data = {
-        "1-Month Projection": {
-        "labels": ["1W", "2W", "3W",],
-        "base_values": [
-            base_val * 1,
-            base_val * 2,
-            base_val * 3
-        ],
-        "inflated_values": [
-            base_val * 1 * (1 + (inflation_val * 1 / 100)),
-            base_val * 2 * (1 + (inflation_val * 2 / 100)),
-            base_val * 3 * (1 + (inflation_val * 3 / 100))
-        ]
-    },
-        "3-Month Projection": {
-        "labels": ["Jan", "Feb", "Mar"],
-        "base_values": [
-            base_val * 1,
-            base_val * 2,
-            base_val * 3
-        ],
-        "inflated_values": [
-            base_val * 1 * (1 + (inflation_val * 1 / 100)),
-            base_val * 2 * (1 + (inflation_val * 2 / 100)),
-            base_val * 3 * (1 + (inflation_val * 3 / 100))
-        ]
-    },
-        "1-Year Projection": {
-        "labels": ["Jan-Mar","Apr-Jun","Jul-Sep","Oct-Dec",],
-        "base_values": [
-            base_val * 1,
-            base_val * 4,
-            base_val * 7,
-            base_val * 10,
-        ],
-        "inflated_values": [
-            base_val * 1 * (1 + (inflation_val * 1 / 100)),
-            base_val * 4 * (1 + (inflation_val * 4 / 100)),
-            base_val * 7 * (1 + (inflation_val * 7 / 100)),
-            base_val * 10 * (1 + (inflation_val * 10 / 100)),
-        ]
-    },
-        "5-Year Projection": {
-        "labels": ["1 Y", "2 Y", "3 Y", "4 Y", "5 Y"],
-        "base_values": [
-            base_val * 12 * 1,
-            base_val * 12 * 2,
-            base_val * 12 * 3,
-            base_val * 12 * 4,
-            base_val * 12 * 5
-        ],
-        "inflated_values": [
-            base_val * 12 * 1 * (1 + (inflation_val * 12 / 100)),
-            base_val * 12 * 2 * (1 + (inflation_val * 24 / 100)),
-            base_val * 12 * 3 * (1 + (inflation_val * 36 / 100)),
-            base_val * 12 * 4 * (1 + (inflation_val * 48 / 100)),
-            base_val * 12 * 5 * (1 + (inflation_val * 60 / 100))
-        ]
-    }
-    }
-
-    return render(request, 'expense/analytics.html', {
-        'all_groups': all_groups,              # Dictionary of group:value
-        'group_keys': all_groups.keys(),       # For use in dropdown
-        'selected_group': selected_group,
-        'inflation_val': inflation_val,
-        'chart_data': chart_data
-    })
 
 def shopping_list_and_bills(request):
     user_uid = request.session.get('user_id')
@@ -582,7 +493,7 @@ def recent_expenses(request):
         expenses = expenses.filter(group_name=group_filter)
     
     if date_filter:
-        date_obj = datetime.strptime(date_filter, '%Y-%m')
+        date_obj = datetime.datetime.strptime(date_filter, '%Y-%m')
         expenses = expenses.filter(
             transaction_time__year=date_obj.year,
             transaction_time__month=date_obj.month
@@ -611,6 +522,95 @@ def recent_expenses(request):
         'groups': all_groups,
         'month_years': month_years,
         'price_range': price_range
+    })
+
+def analytics(request):
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        messages.warning(request, "Please log in to view your recent expenses.")
+        return redirect('login')
+
+    user = UserSalary.objects.get(user=UUID(user_uid))
+    emf= user.salary * user.emergency_percent // 100
+    # Dictionary of groups and their values
+    all_groups = {
+        'Savings': user.saving,
+        'Emergency Funds': emf,
+    }
+
+    selected_group = request.POST.get('group')
+    inflation_val = float(request.POST.get('inflation', 0)) if request.method == 'POST' else 0
+
+    chart_data = {}
+    if selected_group:
+        base_val = all_groups.get(selected_group, 0)
+        chart_data = {
+        "1-Month Projection": {
+        "labels": ["1W", "2W", "3W",],
+        "base_values": [
+            base_val * 1,
+            base_val * 2,
+            base_val * 3
+        ],
+        "inflated_values": [
+            base_val * 1 * (1 + (inflation_val * 1 / 100)),
+            base_val * 2 * (1 + (inflation_val * 2 / 100)),
+            base_val * 3 * (1 + (inflation_val * 3 / 100))
+        ]
+    },
+        "3-Month Projection": {
+        "labels": ["Jan", "Feb", "Mar"],
+        "base_values": [
+            base_val * 1,
+            base_val * 2,
+            base_val * 3
+        ],
+        "inflated_values": [
+            base_val * 1 * (1 + (inflation_val * 1 / 100)),
+            base_val * 2 * (1 + (inflation_val * 2 / 100)),
+            base_val * 3 * (1 + (inflation_val * 3 / 100))
+        ]
+    },
+        "1-Year Projection": {
+        "labels": ["Jan-Mar","Apr-Jun","Jul-Sep","Oct-Dec",],
+        "base_values": [
+            base_val * 1,
+            base_val * 4,
+            base_val * 7,
+            base_val * 10,
+        ],
+        "inflated_values": [
+            base_val * 1 * (1 + (inflation_val * 1 / 100)),
+            base_val * 4 * (1 + (inflation_val * 4 / 100)),
+            base_val * 7 * (1 + (inflation_val * 7 / 100)),
+            base_val * 10 * (1 + (inflation_val * 10 / 100)),
+        ]
+    },
+        "5-Year Projection": {
+        "labels": ["1 Y", "2 Y", "3 Y", "4 Y", "5 Y"],
+        "base_values": [
+            base_val * 12 * 1,
+            base_val * 12 * 2,
+            base_val * 12 * 3,
+            base_val * 12 * 4,
+            base_val * 12 * 5
+        ],
+        "inflated_values": [
+            base_val * 12 * 1 * (1 + (inflation_val * 12 / 100)),
+            base_val * 12 * 2 * (1 + (inflation_val * 24 / 100)),
+            base_val * 12 * 3 * (1 + (inflation_val * 36 / 100)),
+            base_val * 12 * 4 * (1 + (inflation_val * 48 / 100)),
+            base_val * 12 * 5 * (1 + (inflation_val * 60 / 100))
+        ]
+    }
+    }
+
+    return render(request, 'expense/analytics.html', {
+        'all_groups': all_groups,              # Dictionary of group:value
+        'group_keys': all_groups.keys(),       # For use in dropdown
+        'selected_group': selected_group,
+        'inflation_val': inflation_val,
+        'chart_data': chart_data
     })
 
 def dashboard_view(request):
@@ -656,6 +656,34 @@ def dashboard_view(request):
         "selected_group": selected_group,
         "inflation_val": int(inflation * 100),
     })
+
+def contact_us(request):
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        messages.warning(request, "Please log in to view your recent expenses.")
+        return redirect('login')
+
+    user = Users.objects.get(UID=UUID(user_uid))
+    user_d = UserDetails.objects.get(user=UUID(user_uid))
+
+    if request.method == 'POST':
+        name = request.POST.get('name') or 'Anonymous'
+        email = request.POST.get('email')
+        message_body = request.POST.get('message')
+
+        full_message = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message_body}"
+
+        send_mail(
+            subject=f"Message from Expenseo | {name}",
+            message=full_message,
+            from_email=email,
+            recipient_list=['studentvarun01@gmail.com'],  # 👉 replace with your admin email
+            fail_silently=False
+        )
+
+        messages.success(request, "Thank you for contacting us!")
+
+    return render(request, 'expense/contact_us.html', {'user': user, 'user_d': user_d})
 
 def logout(request):
     if 'user_id' in request.session:
