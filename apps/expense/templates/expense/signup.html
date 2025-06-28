@@ -1,24 +1,4 @@
 {% extends 'expense/baselr.html' %}
-{% comment %} {% block title %}SIGNUP{% endblock %}
-{% block body %}
-    <div class="container">
-        <div class="row">
-            <div class="col">
-                <fieldset>
-                    <legend>SignUp</legend>
-                    <form action="" method="post">
-                        {% csrf_token %}
-                        <input type="text" name="email" class="form-control" placeholder="example@example.com">
-                        <input type="password" name="password" class="form-control" placeholder="********">
-                        <input type="password" name="confirm_password" class="form-control" placeholder="********">
-                        <input type="submit" value="Signup" class="btn btn-dark">
-                    </form>
-                </fieldset>
-            </div>
-        </div>
-    </div>
-{% endblock  %} {% endcomment %}
-
 {% block title %}SIGNUP{% endblock %}
 {% block body %}
     <div class="container ">

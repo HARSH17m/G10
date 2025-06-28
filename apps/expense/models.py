@@ -105,3 +105,15 @@ class LogoutData(models.Model):
 
     def __str__(self):
         return f"{self.item_name} - {self.user.email} - {'Shopped' if self.was_shopped else 'Unshopped'}"
+
+class Member(models.Model):
+    main_user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='main_user_members')
+    member_user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='joined_as_member')
+    member_otp = models.PositiveIntegerField(default=987321,null=True, blank=True)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    is_confirmed = models.BooleanField(default=False)
+    class Meta:
+        unique_together = ('main_user', 'member_user')  # prevents duplicate links
+
+    def __str__(self):
+        return f"{self.main_user.email} → {self.member_user.email}"

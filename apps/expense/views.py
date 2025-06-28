@@ -10,7 +10,7 @@ from uuid import UUID # used to call object using str to uuid conversion
 from decimal import Decimal 
 from datetime import datetime
 
-from .models import Users,UserDetails,UserSalary,Transaction,LogoutData
+from .models import Users,UserDetails,UserSalary,Member,Transaction,LogoutData
 from .helpers import *
 
 import random
@@ -219,12 +219,190 @@ def reset_password(request): # HARSH
     return render(request,'expense/reset_password.html')
 
 def index(request):
-    return render(request,'expense/index.html')
+    user_uid = request.session.get('user_id')
+    
+    if not user_uid:
+        messages.warning(request, "Please log in to continue.")
+        return redirect('login')
+
+    user = Users.objects.get(UID=UUID(user_uid))
+    user_d = UserDetails.objects.get(user=user)
+    salary_data = UserSalary.objects.get(user=user)
+    member_count = Member.objects.filter(main_user=user, is_confirmed=True).count()
+    salary_pie = {
+    'Saving': salary_data.saving,
+    'Emergency': salary_data.get_emergency_amount(),
+    'Personal': salary_data.get_personal_amount(),
+    'Fixed Expenses': salary_data.get_total_fixed_expense(),
+    'Remaining': salary_data.remaining_salary
+    }
+    context = {
+        'user': user,
+        'user_d': user_d,
+        'salary_data': salary_data,
+        'member_count': member_count,
+        'salary_labels': list(salary_pie.keys()),
+        'salary_values': list(salary_pie.values()),
+    }
+
+    return render(request, 'expense/index.html', context)
+
+def member(request):
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        messages.warning(request, "Please Login First.")
+        return redirect('login')
+    user = Users.objects.get(UID=UUID(user_uid))
+    Member.objects.filter(main_user=user,is_confirmed=False).delete()
+    member_objs = Member.objects.filter(main_user=user, is_confirmed=True).select_related('member_user')
+    members_combined=[]
+    for m in member_objs:
+        details = UserDetails.objects.get(user=m.member_user)
+        salary = UserSalary.objects.get(user=m.member_user)
+        members_combined.append({
+        'member': m,
+        'details': details,
+        'salary': salary
+        })
+    return render(request, 'expense/member.html', {'members': members_combined})
+
+def member_page(request, uid):
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        messages.warning(request, "Please log in first.")
+        return redirect('login')
+
+    main_user = Users.objects.get(UID=UUID(user_uid))
+    member_user = Users.objects.get(UID=uid)
+
+    # Member Verification Check
+    member_entry = Member.objects.filter(main_user=main_user, member_user=member_user, is_confirmed=True).first()
+    if not member_entry:
+        messages.warning(request, "Member not found or not confirmed.")
+        return redirect('member')
+
+    # Details
+    details = UserDetails.objects.filter(user=member_user).first()
+    salary = UserSalary.objects.filter(user=member_user).first()
+    transactions = Transaction.objects.filter(user=member_user).order_by('-transaction_time')[:10]
+
+    return render(request, 'expense/member_page.html', {
+        'details': details,
+        'member': member_user,
+        'salary': salary,
+        'transactions': transactions,
+    })
+
+def user_verification(request):
+    user_uid = request.session.get('user_id')
+    if not user_uid:
+        messages.warning(request, "Please Login First.")
+        return redirect('login')
+    user = Users.objects.get(UID=UUID(user_uid))
+    # link params for removing confirmation
+    user_delete = request.GET.get('user_delete') == 'true'
+    member_id = request.GET.get('mid')
+
+    password_ = user.password
+    if request.method == 'POST':
+        password = request.POST['password']
+        if not check_password(password, user.password):
+            messages.error(request, "Incorrect password.")
+            return render(request, 'expense/user_verification.html', {'user_delete': user_delete})
+        
+        if user_delete and member_id:
+            Member.objects.filter(main_user=user,member_user=member_id).delete()
+            messages.success(request, "Member removed successfully.")
+            return redirect('member')
+        
+        request.session['is_authenticated_member'] = True
+        return redirect('member_verification')
+    return render(request, 'expense/user_verification.html', {'user_delete': user_delete})
+
+def member_verification(request):
+    user_uid = request.session.get('user_id')
+    
+    if not user_uid:
+        messages.warning(request, "Please Login First.")
+        return redirect('login')
+    
+    if not request.session.get('is_authenticated_member'):
+        messages.warning(request, "Please Authenticate First")
+        return redirect('user_verification')
+
+    if request.method == 'POST':
+        email_ = request.POST['email']
+        user = Users.objects.get(UID=UUID(user_uid))
+        m_user= Users.objects.get(email=email_)
+        
+        if not Users.objects.filter(email=email_).exists():
+            messages.warning(request, "Email not registered.")
+            return redirect('member_verification')
+
+        if m_user == user:
+            messages.warning(request, "You cannot add yourself as a member.")
+            return redirect('member_verification')
+
+        if Member.objects.filter(main_user=user,member_user=m_user,is_confirmed=True).exists():
+            messages.info(request, "This member is already linked to your account.")
+            return redirect('member')        
+        
+        if 'send_otp' in request.POST:
+            member_otp_ = random.randint(111111, 999999)
+            member , created = Member.objects.get_or_create(main_user=user,member_user=m_user,
+            defaults={
+                'member_otp': member_otp_,
+                'joined_at': datetime.datetime.now(),
+                'is_confirmed':False
+            })    
+            member.save()
+
+            if not created:
+                member.member_otp = member_otp_
+                member.save()
+            
+            subject = "OTP for Adding Members | Expenseo"
+            message = f"OTP for Member Verification: {member_otp_}"
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = [email_]
+
+            send_mail(subject, message, from_email, recipient_list)
+            messages.info(request, "OTP has been sent to your email.")
+            request.session['member_verification'] = email_
+            return render(request, 'expense/member_verification.html', {
+                'email': email_,
+                'otp_sent': True
+            })
+
+        elif 'verify_otp' in request.POST:
+            otp = request.POST['otp']
+            email_ = request.session.get('member_verification')
+
+            if not email_:
+                messages.error(request, "Session expired. Please try again.")
+                return redirect('member')
+            
+            main_user_ = Users.objects.get(UID=UUID(user_uid))
+            user = Member.objects.filter(main_user=main_user_,member_user=m_user).order_by('-joined_at').first()
+            if int(otp) != int(user.member_otp):
+                messages.error(request, "Invalid OTP. Please try again.")
+                return render(request, 'expense/member_verification.html', {
+                    'email': email_,
+                    'otp_sent': True,
+                    'error': 'Invalid OTP. Please try again.'
+                })
+            m_user=Users.objects.get(email=email_)
+            member_user = Member.objects.get(member_user=m_user)
+            member_user.is_confirmed = True
+            member_user.save()
+            messages.success(request, "OTP verified.You member have been added successfully.")
+            return redirect('member')
+    return render(request,'expense/member_verification.html')
 
 def profile(request):
     user_uid = request.session.get('user_id')
     if not user_uid:
-        messages.warning(request, "Please log in to view your recent expenses.")
+        messages.warning(request, "Please Login First.")
         return redirect('login')
     user_instance=Users.objects.get(UID=UUID(user_uid))
     user_details, created = UserDetails.objects.get_or_create(
@@ -296,7 +474,7 @@ def expense_tracker(request):
     user=user_instance,
     defaults={
         'full_name': '',
-        'dob': '2000-01-01',  # default valid date
+        'dob': '2000-01-01',
         'gender': '',
         'state': '',
         'city': '',

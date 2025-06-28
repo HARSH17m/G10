@@ -1,15 +1,18 @@
-{% extends 'expense/baselr.html' %}
-{% block title %} Forgot Password {% endblock %}
+{% extends 'expense/base.html' %}
+{% block title %}MEMBER VERIFICATION{% endblock %}
+{% block page %}MEMBER VERIFICATION{% endblock %}
 {% block body %}
-<div class="container">
-    <div class="row justify-content-center align-content-center rounded g-0">
-        <div class="col-sm-3"></div>
-        <div class="col-sm-6">
-            <fieldset class="bg-light card shadow-lg shadow-info">
-                <h3 class="text-center pt-3 pb-0 card-text fs-3">Forgot Password | EXPENSEO</h3>
+<div class="container my-5">
+    <div class="row justify-content-center align-content-center mt-5">
+        <div class="col-md-6">
+            <fieldset class="bg-light card shadow-lg">
+                <h3 class="text-center pt-4 pb-2 card-text fs-3">
+                    Member's OTP Verification
+                </h3>
+
                 <form method="post" class="card-body">
                     {% csrf_token %}
-                    <p class="fs-5 pb-3"> > Enter Your Email and get an OTP to reset your Password</p>
+                    <p class="fs-5 pb-3"> > Enter Your Email and get an OTP to verify your Member</p>
 
                     <!-- Email Field -->
                     <div class="row mb-3">
@@ -31,7 +34,7 @@
                         </div>
                     </div>
 
-                    <!-- OTP Field (Show only after email submitted) -->
+                    <!-- OTP Field -->
                     {% if otp_sent %}
                     <div class="input-group mb-3">
                         <span class="input-group-text border border-secondary border-2">
@@ -43,16 +46,22 @@
                     <input type="submit" name="verify_otp" value="Verify OTP" class="btn btn-dark form-control">
                     {% endif %}
                 </form>
-
                 <div class="d-flex align-items-center my-1">
                     <hr class="flex-grow-1 m-3 border border-secondary border-2 opacity-75">
                     <span class="mx-3 text-muted">OR</span>
                     <hr class="flex-grow-1 m-3 border border-secondary border-2 opacity-75">
                 </div>
-                <a href="{% url 'login' %}" class="btn btn-outline-dark m-3">LOGIN</a>
+                <div class="row m-2 align-items-center">
+                    <div class="col-sm-5 text-center">
+                        <a href="{% url 'index' %}" class="btn btn-outline-dark my-3 form-control">Index</a>
+                    </div>
+                    <i class="col-sm-2 text-center bi bi-dash"></i>
+                    <div class="col-sm-5">
+                        <a href="{% url 'member' %}" class="btn btn-outline-dark my-3 form-control">Members</a>
+                    </div>
+                </div>
             </fieldset>
         </div>
-        <div class="col-sm-3"></div>
     </div>
 </div>
 {% endblock %}

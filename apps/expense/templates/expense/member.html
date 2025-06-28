@@ -1,0 +1,51 @@
+{% extends 'expense/base.html' %}
+{% block title %}MEMBERS{% endblock %}
+{% block page %}MEMBERS{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-center text-light mb-4"><i class="bi bi-people-fill me-2"></i>Linked Members</h2>
+    <a href="{% url 'user_verification' %}" class="btn btn-outline-light rounded-pill mb-3">
+      <i class="bi bi-person-plus-fill me-1"></i> Add Member
+    </a>
+  </div>
+  {% if members %}
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for m in members %}
+      <div class="col">
+        <div class="card shadow-lg bg-dark text-light h-100 rounded-4">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="bi bi-person-circle me-2 text-info"></i>{{ m.details.full_name|default:"Unnamed Member" }}
+            </h5>
+            <p class="card-text my-3">
+              <i class="bi bi-envelope-at-fill me-2 text-warning"></i>{{ m.member.member_user.email }}
+            </p>
+            <p class="card-text my-3">
+              <i class="bi bi-calendar-check-fill me-2 text-success"></i>Joined: {{ m.member.joined_at|date:"M d, Y" }}
+            </p>
+            <p class="card-text my-3">
+              <i class="bi bi-currency-rupee text-primary me-2"></i>{{ m.salary.salary|default:"Not Set" }}
+            </p>
+            <div class="row">
+              <div class="col-sm-6 text-center">
+                <a href="{% url 'member_page' m.member.member_user.UID %}" class="btn btn-outline-info rounded-pill form-control mt-3">
+                  <i class="bi bi-eye-fill me-1"></i>View Details
+                </a>
+              </div>
+              <div class="col-sm-6 text-center">
+                <a href="{% url 'user_verification' %}?user_delete=true&mid={{ m.member.member_user.UID }}" class="btn btn-outline-danger rounded-pill form-control mt-3">
+                  <i class="bi bi-person-dash-fill me-1"></i>Remove Member
+                </a>
+              </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="alert alert-info text-center shadow">You haven’t added any members yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
