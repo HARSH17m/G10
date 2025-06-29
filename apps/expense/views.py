@@ -72,7 +72,21 @@ def signup(request):#ADAM,
             otp=otp_
         )
         subject = "Email Confirmation mail | Expenseo"
-        message = f"OTP | {otp_}"
+        message = f"""
+                Hello,
+
+                Thank you for signing up with Expenseo!
+
+                To complete your registration, please verify your email address using the One-Time Password (OTP) below:
+
+                🔐 OTP: {otp_}
+
+                This OTP is valid for a limited time and is required to activate your account.  
+                If you did not create an account with Expenseo, please ignore this message.
+
+                Welcome aboard,  
+                Team Expenseo
+                """
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [f"{email_}"]
         if send_mail(subject,message,from_email,recipient_list):
@@ -142,52 +156,72 @@ def details(request, uid):
     "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"]
     return render(request, 'expense/details.html', {'user': user,'states':INDIAN_STATES})
 
-def forgot_password(request): # HARSH
-    if request.method == 'POST':
-        email_ = request.POST['email']
+def forgot_password(request,is_logged_in=False): # HARSH
+    if is_logged_in:
+        user_uid = request.session.get('user_id')
+        if not user_uid:
+            messages.warning(request, "Please log in first.")
+            return redirect('login')
+        user = Users.objects.get(UID=UUID(user_uid))
+        email_ = user.email
+    else:
+        email_ = request.POST.get('email') if request.method == 'POST' else None
 
-        if not Users.objects.filter(email=email_).exists():
+    if request.method == 'POST':
+        # Non-logged-in check for existing email
+        if not is_logged_in and not Users.objects.filter(email=email_).exists():
             messages.warning(request, "Email not found. Please sign up.")
             return redirect('signup')
 
         if 'send_otp' in request.POST:
             forgot_password_otp_ = random.randint(111111, 999999)
-
             user = Users.objects.get(email=email_)
             user.forgot_password_otp = forgot_password_otp_
             user.save()
 
-            request.session['reset_email'] = str(email_)
+            request.session['reset_email'] = email_
 
             subject = "OTP for Resetting Password | Expenseo"
-            message = f"OTP for Verification: {forgot_password_otp_}"
-            from_email = settings.EMAIL_HOST_USER
-            recipient_list = [email_]
+            message = f"""
+                    Hello,
 
-            send_mail(subject, message, from_email, recipient_list)
+                    We received a request to reset your Expenseo account password.
+
+                    Please use the following One-Time Password (OTP) to verify your identity:
+
+                    🔐 OTP: {forgot_password_otp_}
+
+                    This OTP is valid for a short duration and can only be used once.  
+                    If you did not request a password reset, please ignore this email or contact support immediately.
+
+                    Stay secure,  
+                    Team Expenseo
+                    """
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [email_])
             messages.info(request, "OTP has been sent to your email.")
 
             return render(request, 'expense/forgot_password.html', {
                 'email': email_,
-                'otp_sent': True
+                'otp_sent': True,
+                'is_logged_in': is_logged_in
             })
 
         elif 'verify_otp' in request.POST:
-            user_otp = request.POST['otp']
+            otp = request.POST['otp']
             email_ = request.session.get('reset_email')
 
             if not email_:
                 messages.error(request, "Session expired. Please try again.")
-                return redirect('forgot_password')
+                return redirect('password_reset_logged_in' if is_logged_in else 'forgot_password')
 
             user = Users.objects.get(email=email_)
-
-            if int(user_otp) != int(user.forgot_password_otp):
+            if int(otp) != int(user.forgot_password_otp):
                 messages.error(request, "Invalid OTP. Please try again.")
                 return render(request, 'expense/forgot_password.html', {
                     'email': email_,
                     'otp_sent': True,
-                    'error': 'Invalid OTP. Please try again.'
+                    'error': 'Invalid OTP. Please try again.',
+                    'is_logged_in': is_logged_in
                 })
 
             messages.success(request, "OTP verified. You can now reset your password.")
@@ -195,7 +229,9 @@ def forgot_password(request): # HARSH
                 'email': email_
             })
 
-    return render(request, 'expense/forgot_password.html')
+    return render(request, 'expense/forgot_password.html', {
+        'is_logged_in': is_logged_in
+    })
 
 def reset_password(request): # HARSH
     if request.method == 'POST':
@@ -362,7 +398,22 @@ def member_verification(request):
                 member.save()
             
             subject = "OTP for Adding Members | Expenseo"
-            message = f"OTP for Member Verification: {member_otp_}"
+            message = f"""
+                    Hello,
+
+                    You have initiated a request to add a new member to your Expenseo account.
+
+                    Please use the following One-Time Password (OTP) to verify the member addition:
+
+                    🔐 OTP: {member_otp_}
+
+                    This OTP is valid for a limited time. Do not share it with anyone.
+
+                    If you did not request this action, please ignore this email.
+
+                    Thank you,  
+                    Team Expenseo
+                    """
             from_email = settings.EMAIL_HOST_USER
             recipient_list = [email_]
 

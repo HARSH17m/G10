@@ -2,11 +2,12 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path('',login,name="login"),#VIVEK
-    path('signup/',signup,name="signup"),#ADAM
-    path('email-verify/',email_verify,name="email_verify"),#VARUN
+    path('',login,name="login"),
+    path('signup/',signup,name="signup"),
+    path('email-verify/',email_verify,name="email_verify"),
     path('details/<uuid:uid>/',details,name="details"),
-    path('forgot-password/',forgot_password,name="forgot_password"),#HARSH
+    path('forgot-password/',forgot_password,name="forgot_password"),
+    path('reset-password-logged-in/', lambda r: forgot_password(r, is_logged_in=True), name='password_reset_logged_in'),
     path('reset-password/',reset_password,name="reset_password"),
     path('index/',index,name="index"),
     path('profile/',profile,name="profile"),
