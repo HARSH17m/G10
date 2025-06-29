@@ -9,7 +9,7 @@
                 <div class="card shadow-lg">
                     <div class="card-body">
                         <h3 class="card-title text-center m-5">Login | EXPENSEO</h3>
-                        <form action="" method="post">
+                        <form action="{% url 'login' %}" method="post">
                             {% csrf_token %}
                             <div class="input-group mb-3 px-2">
                                 <span class="col-sm-1 input-group-text  border border-secondary border-2 border-end-0"><i class="bi bi-envelope"></i></span>

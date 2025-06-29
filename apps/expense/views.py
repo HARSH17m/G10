@@ -16,7 +16,7 @@ from .helpers import *
 import random
 import datetime
 
-def login(request):#VIVEK
+def login(request):
     if request.method == 'POST':
         email_=request.POST['email']
         password_=request.POST['password']
@@ -101,7 +101,7 @@ def signup(request):#ADAM,
         #        
     return render(request,'expense/signup.html')
 
-def email_verify(request):#VARUN
+def email_verify(request):
     if request.method == 'POST':
         email_=request.POST['email']
         otp_=request.POST['otp']
@@ -130,7 +130,7 @@ def details(request, uid):
 
     if UserDetails.objects.filter(user_id=user).exists():
         messages.info(request, "Details already submitted. You can log in now.")
-        return redirect('login')  # already filled
+        return redirect('login')
 
     if request.method == 'POST':
         UserDetails.objects.create(
@@ -156,20 +156,9 @@ def details(request, uid):
     "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"]
     return render(request, 'expense/details.html', {'user': user,'states':INDIAN_STATES})
 
-def forgot_password(request,is_logged_in=False): # HARSH
-    if is_logged_in:
-        user_uid = request.session.get('user_id')
-        if not user_uid:
-            messages.warning(request, "Please log in first.")
-            return redirect('login')
-        user = Users.objects.get(UID=UUID(user_uid))
-        email_ = user.email
-    else:
-        email_ = request.POST.get('email') if request.method == 'POST' else None
-
+def forgot_password(request):
     if request.method == 'POST':
-        # Non-logged-in check for existing email
-        if not is_logged_in and not Users.objects.filter(email=email_).exists():
+        if not Users.objects.filter(email=email_).exists():
             messages.warning(request, "Email not found. Please sign up.")
             return redirect('signup')
 
@@ -203,7 +192,6 @@ def forgot_password(request,is_logged_in=False): # HARSH
             return render(request, 'expense/forgot_password.html', {
                 'email': email_,
                 'otp_sent': True,
-                'is_logged_in': is_logged_in
             })
 
         elif 'verify_otp' in request.POST:
@@ -212,7 +200,7 @@ def forgot_password(request,is_logged_in=False): # HARSH
 
             if not email_:
                 messages.error(request, "Session expired. Please try again.")
-                return redirect('password_reset_logged_in' if is_logged_in else 'forgot_password')
+                return redirect('login')
 
             user = Users.objects.get(email=email_)
             if int(otp) != int(user.forgot_password_otp):
@@ -221,7 +209,6 @@ def forgot_password(request,is_logged_in=False): # HARSH
                     'email': email_,
                     'otp_sent': True,
                     'error': 'Invalid OTP. Please try again.',
-                    'is_logged_in': is_logged_in
                 })
 
             messages.success(request, "OTP verified. You can now reset your password.")
@@ -229,11 +216,9 @@ def forgot_password(request,is_logged_in=False): # HARSH
                 'email': email_
             })
 
-    return render(request, 'expense/forgot_password.html', {
-        'is_logged_in': is_logged_in
-    })
+    return render(request, 'expense/forgot_password.html')
 
-def reset_password(request): # HARSH
+def reset_password(request): 
     if request.method == 'POST':
         email_ = request.POST['email']
         password_ = request.POST['password']

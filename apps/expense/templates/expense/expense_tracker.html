@@ -14,7 +14,7 @@
           <div class="row mb-3">
             <div class="col-md-6">
               <label for="salary" class="form-label">Salary (₹)</label>
-              <input type="number" name="salary" id="salary" class="form-control bg-dark text-light" value="{{ user_salary.salary|default:0 }}" {% if not allow_edit %}readonly{% endif %} required>
+              <input type="number" name="salary" step="100" id="salary" class="form-control bg-dark text-light" value="{{ user_salary.salary|default:0 }}" {% if not allow_edit %}readonly{% endif %} required>
               {% if not allow_edit and not is_first_time %}
                 <small class="text-muted">You can edit again on reset day.</small>
               {% endif %}
